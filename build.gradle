@@ -1,0 +1,49 @@
+group 'jaemisseo'
+
+apply plugin: 'groovy'
+apply plugin: 'java'
+
+sourceCompatibility = 1.5
+
+
+sourceSets {
+    main {
+        groovy {
+            srcDirs = ['src/main/java']
+        }
+    }
+
+    test {
+        groovy {
+            srcDirs = ['src/test/java']
+        }
+    }
+}
+
+
+
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
+repositories {
+    jcenter()
+    maven { url "https://jitpack.io" }
+    maven { url 'http://repo.spring.io/milestone' }
+    maven { url "http://maven.springframework.org/release" }
+}
+
+dependencies {
+   
+    compile 'com.github.avaj-java:common-util:0.0.1'
+
+    //TAR
+    compile 'org.apache.commons:commons-compress:1.11'
+    
+    //GROOVY
+    compile 'org.codehaus.groovy:groovy-all:2.1.3'
+
+    //TEST
+    testCompile 'junit:junit:4.11'
+    
+}
