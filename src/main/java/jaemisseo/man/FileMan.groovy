@@ -1,6 +1,7 @@
 package jaemisseo.man
 
 import jaemisseo.man.util.FileSetup
+import jaemisseo.man.util.Util
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
@@ -59,9 +60,9 @@ class FileMan {
         return this
     }
 
-    /**
+    /*************************
      * Process - Backup
-     */
+     *************************/
     boolean backupFiles(String dirPathToSave, String dirPathToBackup) throws Exception{
         backupFiles(dirPathToSave, dirPathToBackup, [], [])
     }
@@ -92,9 +93,9 @@ class FileMan {
         return true
     }
 
-    /**
+    /*************************
      * Read File
-     */
+     *************************/
     private boolean loadFileContent(String filePath){
         return loadFileContent(new File(filePath))
     }
@@ -132,9 +133,9 @@ class FileMan {
     }
 
 
-    /**
+    /*************************
      * Create New File By LineList
-     */
+     *************************/
     boolean createNewFile(String dirPath, String fileName, List fileContentLineList){
         createNewFile(dirPath, fileName, fileContentLineList, new FileSetup())
     }
@@ -159,9 +160,9 @@ class FileMan {
         write(newFile, fileContentLineList, getMergedOption(opt))
     }
 
-    /**
+    /*************************
      * 특정 디렉토리의 모든 파일들을 -> 지우기
-     */
+     *************************/
     static boolean emptyDirectory(String dirPathToDelete, List excludePathList) throws Exception{
         File dirToDelete = new File(dirPathToDelete)
         dirToDelete.listFiles().each{ File fileToDelete ->
@@ -179,9 +180,9 @@ class FileMan {
         return true
     }
 
-    /**
+    /*************************
      * 특정 디렉토리을 -> 완전 지우기
-     */
+     *************************/
     static boolean rmdir(final File dirToDelete, List excludePathList) {
         if (dirToDelete.isDirectory() && !isExcludeFile(dirToDelete, excludePathList) ){
             // Delete Sub
@@ -205,9 +206,9 @@ class FileMan {
         return true
     }
 
-    /**
+    /*************************
      * 특정 디렉토리의 모든 파일들을 -> 다른 특정 디렉토리로 옴기기
-     */
+     *************************/
     boolean moveAllInDirectory(String beforeDirPath, String afterDirPath, List excludePathList) throws Exception{
         File beforeDir = new File(beforeDirPath)
         beforeDir.listFiles().each{ File fileToMove ->
@@ -234,9 +235,9 @@ class FileMan {
      ***************
      ***************/
 
-    /**
+    /*************************
      * MKDIRS
-     */
+     *************************/
     static boolean mkdirs(String path){
         boolean isOk = false
         File dir = new File(path)
@@ -275,9 +276,9 @@ class FileMan {
             throw new Exception('There is No Directory. OR Maybe, It Failed To Create Directory.')
     }
 
-    /**
+    /*************************
      * Get Relative Path
-     */
+     *************************/
     static String getRelativePath(String from, String to){
 //        new File(libPath).toURI().relativize(new File(installerHome).toURI())
         String relPath
@@ -326,9 +327,9 @@ class FileMan {
         return (isFile(filePath)) ? new File(filePath).getParentFile().getPath() : filePath
     }
 
-    /**
+    /*************************
      * Check
-     */
+     *************************/
     static boolean checkPath(String sourcePath, String destPath){
         //Check Source Path
         if (!sourcePath)
@@ -398,8 +399,25 @@ class FileMan {
 
     static boolean isRootPath(String filePath){
         try{
-            new File(getFullPath(filePath)).getParentFile()
-            return false
+            // 슬래쉬이면 무조건 루트로 인정
+            if (!filePath)
+                return false
+            if (filePath.equals('/') || filePath.equals('\\'))
+                return true
+            //입력된 path 분석
+            String rootName
+            String fullPath = new File(getFullPath(filePath))
+            List fromOriginDepthList = fullPath.split(/[\/\\]/) - [""]
+            if (fromOriginDepthList && fromOriginDepthList.size() <= 1)
+                rootName = (fromOriginDepthList[0] as String)?.toUpperCase()
+            else
+                return false
+            //
+            List rootList = new File('.').listRoots()
+            if ( rootList.findAll{ (it as String).startsWith(rootName) } )
+                return true
+            else 
+                return false
         }catch(e){
             return true
         }
@@ -412,9 +430,9 @@ class FileMan {
         return (isFile(filePath)) ? fromOriginDepthList[fromOriginDepthList.size()-1] : null
     }
 
-    /**
+    /*************************
      * WRITE
-     */
+     *************************/
     static boolean write(String newFilePath, String content){
         return write(newFilePath, content, new FileSetup())
     }
@@ -468,13 +486,13 @@ class FileMan {
         return true
     }
 
-    /**
+    /*************************
      * COPY
      * 파일 => 파일 (파일명변경)
      * *   => 폴더   (자동파일명)
      * 파일 => 폴더  (자동파일명)
      * 폴더 => 폴더  (자동파일명)
-     */
+     *************************/
     static boolean copy(String sourcePath, String destPath){
         return copy(sourcePath, destPath, new FileSetup())
     }
@@ -539,13 +557,13 @@ class FileMan {
     }
 
 
-    /**
+    /*************************
      * MOVE
      * 파일 => 파일 (파일명변경)
      * *   => 폴더   (자동파일명)
      * 파일 => 폴더  (자동파일명)
      * 폴더 => 폴더  (자동파일명)
-     */
+     *************************/
     static boolean move(String sourcePath, String destPath){
         return move(sourcePath, destPath, new FileSetup())
     }
@@ -576,9 +594,9 @@ class FileMan {
         return true
     }
 
-    /**
+    /*************************
      * DELETE
-     */
+     *************************/
     static boolean delete(String sourcePath){
         return delete(sourcePath, new FileSetup())
     }
@@ -621,9 +639,9 @@ class FileMan {
     }
 
 
-    /**
+    /*************************
      * COMPRESSING
-     */
+     *************************/
     static boolean compress(String sourcePath){
         compress(sourcePath, new File(sourcePath).getParentFile().getPath())
     }
@@ -650,9 +668,9 @@ class FileMan {
     }
 
 
-    /**
+    /*************************
      * COMPRESSING - ZIP
-     */
+     *************************/
     static boolean zip(String sourcePath){
         zip(sourcePath, null, new FileSetup())
     }
@@ -727,9 +745,9 @@ class FileMan {
         return true
     }
 
-    /**
+    /*************************
      * COMPRESSING - JAR
-     */
+     *************************/
     static boolean jar(String sourcePath){
         jar(sourcePath, null, new FileSetup())
     }
@@ -808,9 +826,9 @@ class FileMan {
         return true
     }
 
-    /**
+    /*************************
      * COMPRESSING - TAR.GZ
-     */
+     *************************/
     static boolean tar(String sourcePath){
         tar(sourcePath, null, new FileSetup())
     }
@@ -904,9 +922,9 @@ class FileMan {
 
 
 
-    /**
+    /*************************
      * EXTRACTING
-     */
+     *************************/
     static boolean extract(String sourcePath){
         extract(sourcePath, getLastDirectoryPath(sourcePath), new FileSetup())
     }
@@ -932,9 +950,9 @@ class FileMan {
         }
     }
 
-    /**
+    /*************************
      * EXTRACTING - UNTAR
-     */
+     *************************/
     static boolean untar(String sourcePath){
         untar(sourcePath, getLastDirectoryPath(sourcePath))
     }
@@ -953,7 +971,7 @@ class FileMan {
         destPath = getFullPath(destPath)
         checkPath(sourcePath, destPath)
         //Make Entry
-        List<String> filePathList = getFilePathList(sourcePath)
+        List<String> filePathList = getSubFilePathList(sourcePath)
 //        List<String> entryList = genFileEntryList(sourcePath)//TODO:압축속 엔트리를 얻어와야함.
         String sourceRootPath = new File(sourcePath).getParentFile().getPath()
         String destRootPath = getLastDirectoryPath(destPath)
@@ -1001,9 +1019,9 @@ class FileMan {
         return true
     }
 
-    /**
+    /*************************
      * EXTRACTING - UNZIP
-     */
+     *************************/
     static boolean unzip(String sourcePath){
         unzip(sourcePath, getLastDirectoryPath(sourcePath))
     }
@@ -1022,7 +1040,7 @@ class FileMan {
         destPath = getFullPath(destPath)
         checkPath(sourcePath, destPath)
         //Make Entry
-        List<String> filePathList = getFilePathList(sourcePath)
+        List<String> filePathList = getSubFilePathList(sourcePath)
 //        List<String> entryList = genFileEntryList(sourcePath)//TODO:압축속 엔트리를 얻어와야함.
         String sourceRootPath = new File(sourcePath).getParentFile().getPath()
         String destRootPath = getLastDirectoryPath(destPath)
@@ -1067,9 +1085,9 @@ class FileMan {
         return true
     }
 
-    /**
+    /*************************
      * EXTRACTING - UNJAR
-     */
+     *************************/
     static boolean unjar(String sourcePath){
         unjar(sourcePath, getLastDirectoryPath(sourcePath))
     }
@@ -1088,7 +1106,7 @@ class FileMan {
         destPath = getFullPath(destPath)
         checkPath(sourcePath, destPath)
         //Make Entry
-        List<String> filePathList = getFilePathList(sourcePath)
+        List<String> filePathList = getSubFilePathList(sourcePath)
 //        List<String> entryList = genFileEntryList(sourcePath)//TODO:압축속 엔트리를 얻어와야함.
         String sourceRootPath = new File(sourcePath).getParentFile().getPath()
         String destRootPath = getLastDirectoryPath(destPath)
@@ -1161,10 +1179,13 @@ class FileMan {
         return destPath
     }
 
+    /*************************
+     * EntryList
+     *************************/
     static List<String> genFileEntryList(String sourcePath){
         List<String> newEntryList = []
         String rootPath = new File(sourcePath).getParentFile().getPath()
-        List<String> filePathList = getFilePathList(sourcePath)
+        List<String> filePathList = getSubFilePathList(sourcePath)
         filePathList.each{ String onePath ->
             if (isMatchedPath(onePath, sourcePath))
                 newEntryList = genFileEntryList(newEntryList, rootPath, onePath)
@@ -1187,16 +1208,135 @@ class FileMan {
         return entryList
     }
 
+    
+
+    /*************************
+     * Find File
+     *************************/
+    static List<File> findAll(String rootPath, String searchFileName){
+        return findAll(rootPath, searchFileName, null)
+    }
+
+    static List<File> findAll(String rootPath, String searchFileName, Closure eachFoundFileClosure){
+        List<File> newEntryList = []
+        List<File> filePathList = []
+        
+        //Root of FileSystem => 정확한 루트를 따진다. (Windows Drive...)
+        if (isRootPath(rootPath)){
+            List<File> rootList = new File('/').listRoots()
+            //Maybe on Windows
+            if (rootList && rootList.size() > 1){
+                if (rootPath.equals('/')){
+                    rootList.each{ File root ->
+                        String rootName = root.toString()
+                        rootName = rootName.contains('*') ? rootName : "${rootName}/*"
+                        filePathList.addAll(getSubFilePathList(rootName))
+                    }
+                }else{
+                    String rootKeyString = rootPath.replaceAll('\\W*', '')?.toUpperCase()
+                    String rootName = rootList.find { it.toString().contains(rootKeyString) }
+                    if (rootName){
+                        rootName = rootName.contains('*') ? rootName : "${rootName}/*"
+                        filePathList = getSubFilePathList(rootName)
+                    }
+                }
+                
+            //Maybe on Others(Unix & Linux)
+            }else{
+                rootPath = rootPath.contains('*') ? rootPath : "${rootPath}/*"
+            }
+        }
+        
+        // Find File
+        filePathList = filePathList ?: getSubFilePathList(rootPath)
+        int total = filePathList.size() - 1
+        int barSize = 20
+        filePathList.eachWithIndex{ String onePath, int i ->
+            newEntryList = findAll(newEntryList, onePath, searchFileName){ File foundFile ->
+                return Util.withProgressBar(i, total, barSize){ (eachFoundFileClosure) ? eachFoundFileClosure(foundFile) : true }
+            }
+            Util.withProgressBar(i, total, barSize)
+        }
+        return newEntryList
+    }
+
+
+
+    static List<File> findAll(List<String> entryList, String filePath, String searchFileName){
+        return findAll(entryList, filePath, searchFileName, null)
+    }
+    
+    static List<File> findAll(List<String> entryList, String filePath, String searchFileName, Closure eachFoundFileClosure){
+        File node = new File(filePath)
+
+        if (node.getName().equals(searchFileName)){
+            if (eachFoundFileClosure){
+                if (eachFoundFileClosure(node)){
+                    entryList.add(node)
+                }
+            }else{
+                entryList.add(node)
+            }
+        }
+
+        if(node.isDirectory()){
+            String[] subNodes = node.list()
+            for (String filename : subNodes){
+                findAll(entryList, new File(node, filename).getPath(), searchFileName, eachFoundFileClosure)
+            }
+        }
+        return entryList
+    }
+
+
+    /*************************
+     * Find File - with Condition
+     *************************/
+    static List<File> findAll(String rootPath, String searchFileName, def condition){
+        return findAll(rootPath, searchFileName, condition, null)
+    }
+    
+    static List<File> findAll(String rootPath, String searchFileName, def condition, Closure eachFoundFileClosure){
+        //조건 검색
+        List<File> foundFileList = findAll(rootPath, searchFileName){ File foundFile ->
+            String foundFilePath = foundFile.getPath()
+            Map result = [:]
+            result[new File(foundFilePath).getName()] = true
+            def foundObject = Util.find(result, condition){ dataObject, conditionObject ->
+                //파일 존재 검사후, 조건값과 비교
+                Map matchedObject = conditionObject.findAll{ path, existCondition ->
+                    boolean isExist = new File(getLastDirectoryPath(foundFilePath), path).exists()
+                    return (isExist == existCondition)
+                }
+                //모두 일치하면 True
+                return (matchedObject.size() == conditionObject.size())
+            }
+            //조건 일치시
+            if (foundObject){
+                if (eachFoundFileClosure)
+                    return eachFoundFileClosure(foundFile)
+                else
+                    return true
+            }
+            return false
+        }
+        return foundFileList
+    }
+
+    
+    
+
+    
     static boolean isMatchedPath(String onePath, rangePath){
-        String regexpStr = rangePath.replace('\\', '/').replace('*',"[^\\/\\\\]*").replace('.', '\\.')
+        String regexpStr = rangePath.replaceAll(/[\/\\]+/, '/').replace('*',"[^\\/\\\\]*").replace('.', '\\.')
         return onePath.replace('\\', '/').matches(regexpStr)
     }
 
-    static List<String> getFilePathList(String filePath){
-        return getFilePathList(filePath, '')
+    static List<String> getSubFilePathList(String filePath){
+        return getSubFilePathList(filePath, '')
     }
 
-    static List<String> getFilePathList(String filePath, String extension){
+    static List<String> getSubFilePathList(String filePath, String extension){
         def filePathList = []
         String fullPath = getFullPath(filePath)
         File file = new File(fullPath)
@@ -1276,9 +1416,9 @@ class FileMan {
         return sourceFile.exists()
     }
 
-    /**
+    /*************************
      * backup
-     */
+     *************************/
     FileMan backup(){
         return backup(globalOption)
     }
@@ -1298,9 +1438,9 @@ class FileMan {
     }
 
 
-    /**
+    /*************************
      * copy
-     */
+     *************************/
     FileMan copy(String destPath){
         return copy(destPath, globalOption)
     }
@@ -1312,9 +1452,9 @@ class FileMan {
     }
 
 
-    /**
+    /*************************
      * move
-     */
+     *************************/
     FileMan move(String destPath){
         return move(destPath, globalOption)
     }
@@ -1325,9 +1465,9 @@ class FileMan {
         return this
     }
 
-    /**
+    /*************************
      * read
-     */
+     *************************/
     FileMan read(){
         return read(sourceFile, globalOption)
     }
@@ -1368,9 +1508,9 @@ class FileMan {
         return this
     }
 
-    /**
+    /*************************
      * write
-     */
+     *************************/
     FileMan write(){
         return write(sourceFile, globalOption)
     }
@@ -1405,9 +1545,9 @@ class FileMan {
         return ""
     }
 
-    /**
+    /*************************
      * replace
-     */
+     *************************/
     FileMan replace(Map replaceMap){
         replaceMap.each{ String target, String replacement ->
             replace(target, replacement)
@@ -1427,9 +1567,9 @@ class FileMan {
         return this
     }
 
-    /**
+    /*************************
      * replace line
-     */
+     *************************/
     FileMan replaceLine(Map replaceLineMap){
         replaceLineMap.each{ String target, String replacement ->
             replaceLine(target, replacement)
@@ -1452,9 +1592,9 @@ class FileMan {
         return this
     }
 
-    /**
+    /*************************
      * replace property
-     */
+     *************************/
     FileMan replaceProperty(Map replacePropertyMap){
         replacePropertyMap.each{ String target, String replacement ->
             replaceProperty(target, replacement)
@@ -1491,18 +1631,38 @@ class FileMan {
 
 
 
+    /*************************
+     * getFullPath
+     *************************/
+    static String getFullPath(String path){
+        return getFullPath(nowPath, path)
+    }
 
+    static String getFullPath(File file){
+        return getFullPath(nowPath, file.path)
+    }
 
-
-
-
-
-
-
-
-
-
-
+    static String getFullPath(String nowPath, String relativePath){
+        if (!relativePath)
+            return null
+        relativePath = relativePath.replaceAll(/[\/\\]+/, '/')
+        if (isItStartsWithRootPath(relativePath))
+            return relativePath
+        if (!nowPath || !relativePath)
+            return ''
+        relativePath.split(/[\/\\]+/).each{ String next ->
+            if (next.equals('..')){
+                nowPath = (new File(nowPath).isDirectory()) ? new File(nowPath).getParent() : new File(nowPath).getParentFile().getParent()
+            }else if (next.equals('.')){
+                // ignore
+            }else if (next.equals('~')){
+                nowPath = System.getProperty("user.home")
+            }else{
+                nowPath = "${nowPath}/${next}"
+            }
+        }
+        return new File(nowPath).path
+    }
 
 
 
@@ -1510,9 +1670,9 @@ class FileMan {
         return globalOption.clone().merge(opt)
     }
 
-    /**
+    /*****
      * Check Exclude File
-     */
+     *****/
     static boolean isExcludeFile(File targetFile, List<String> excludePathList){
         List excludeCheckList = excludePathList.findAll{ String excludeItem ->
             File excludeFile = new File(excludeItem)
@@ -1520,6 +1680,32 @@ class FileMan {
         }
         return excludeCheckList;
     }
+
+    static boolean isItStartsWithRootPath(String path){
+        boolean isRootPath = false
+        path = new File(path).path
+        if (path.startsWith('/') || path.startsWith('\\'))
+            return true
+        File.listRoots().each{
+            String rootPath = new File(it.path).path
+            if (path.startsWith(rootPath) || path.startsWith(rootPath.toLowerCase()))
+                isRootPath = true
+        }
+        return isRootPath
+    }
+
+    static boolean isDifferentRootDir(String from, String to){
+        boolean result = false
+        if (isItStartsWithRootPath(from) && isItStartsWithRootPath(to)){
+            List<String> fromDepthList = getLastDirectoryPath(from).split(/[\/\\]/) - [""]
+            List<String> toDepthList = getLastDirectoryPath(to).split(/[\/\\]/) - [""]
+            if (fromDepthList[0] != toDepthList[0])
+                result = true
+        }
+        return result
+    }
+
+
 
     /**
      * Seperator with comma or space
@@ -1556,57 +1742,6 @@ class FileMan {
             fileMapForSeperator[validKey] = dataList.findAll{ it[keyName] == validKey }
         }
         return fileMapForSeperator
-    }
-
-
-
-    static String getFullPath(String path){
-        return getFullPath(nowPath, path)
-    }
-
-    static String getFullPath(String nowPath, String relativePath){
-        if (!relativePath)
-            return null
-        if (isItStartsWithRootPath(relativePath))
-            return relativePath
-        if (!nowPath || !relativePath)
-            return ''
-        relativePath.split(/[\/\\]/).each{ String next ->
-            if (next.equals('..')){
-                nowPath = new File(nowPath).getParent()
-            }else if (next.equals('.')){
-                // ignore
-            }else if (next.equals('~')){
-                nowPath = System.getProperty("user.home")
-            }else{
-                nowPath = "${nowPath}/${next}"
-            }
-        }
-        return new File(nowPath).path
-    }
-
-    static boolean isItStartsWithRootPath(String path){
-        boolean isRootPath = false
-        path = new File(path).path
-        if (path.startsWith('/') || path.startsWith('\\'))
-            return true
-        File.listRoots().each{
-            String rootPath = new File(it.path).path
-            if (path.startsWith(rootPath) || path.startsWith(rootPath.toLowerCase()))
-                isRootPath = true
-        }
-        return isRootPath
-    }
-
-    static boolean isDifferentRootDir(String from, String to){
-        boolean result = false
-        if (isItStartsWithRootPath(from) && isItStartsWithRootPath(to)){
-            List<String> fromDepthList = getLastDirectoryPath(from).split(/[\/\\]/) - [""]
-            List<String> toDepthList = getLastDirectoryPath(to).split(/[\/\\]/) - [""]
-            if (fromDepthList[0] != toDepthList[0])
-                result = true
-        }
-        return result
     }
 
 }

@@ -2,6 +2,7 @@ group 'jaemisseo'
 
 apply plugin: 'groovy'
 apply plugin: 'java'
+apply plugin: 'idea'
 
 sourceCompatibility = 1.5
 
@@ -34,8 +35,11 @@ repositories {
 }
 
 dependencies {
-   
-    compile 'com.github.avaj-java:common-util:0.0.1'
+
+    if (rootProject?.findProject('common-util'))
+        compile project(':common-util')
+    else
+        compile 'com.github.avaj-java:common-util:0.0.2'
 
     //TAR
     compile 'org.apache.commons:commons-compress:1.11'
