@@ -24,7 +24,7 @@ class FileManTest {
 
     @Test
     @Ignore
-    void isRoot(){
+    void isRootPath(){
         assert FileMan.isRootPath('/d')
         assert FileMan.isRootPath('/d/')
         assert FileMan.isRootPath('/d////')
@@ -42,7 +42,7 @@ class FileManTest {
 
     @Test
     @Ignore
-    void startWithRoot(){
+    void isItStartsWithRootPath(){
         assert FileMan.isItStartsWithRootPath('/d')
         assert FileMan.isItStartsWithRootPath('/d/')
         assert FileMan.isItStartsWithRootPath('d/')
@@ -50,27 +50,78 @@ class FileManTest {
     }
 
     @Test
+    void getRelativePath(){
+        String a, b, relpath
+
+        // One Difference
+        a = "/workspace/project/build/installer_myproject/bin"
+        b = "/workspace/project/build/installer_myproject"
+        relpath = FileMan.getRelativePath(a, b)
+        assert relpath == ".."
+
+        a = "d/workspace/project/build/installer_myproject/bin"
+        b = "d/workspace/project/build/installer_myproject"
+        relpath = FileMan.getRelativePath(a, b)
+        assert relpath == ".."
+
+        a = "d:/workspace/project/build/installer_myproject/bin/"
+        b = "d:/workspace/project/build/installer_myproject/"
+        relpath = FileMan.getRelativePath(a, b)
+        assert relpath == ".."
+
+        // Same
+        a = "d:/workspace/project/build/installer_myproject/"
+        b = "d:/workspace/project/build/installer_myproject/"
+        relpath = FileMan.getRelativePath(a, b)
+        assert relpath == "."
+
+        // Minus and Plus
+        a = "d:/ddd"
+        b = "d:/workspace/project/build/installer_myproject/"
+        relpath = FileMan.getRelativePath(a, b)
+        assert relpath == "../workspace/project/build/installer_myproject"
+
+        // Different Driver Name
+        a = "/"
+        b = "d:/workspace/project/build/installer_myproject"
+        relpath = FileMan.getRelativePath(a, b)
+        assert relpath == "d:/workspace/project/build/installer_myproject"
+
+        a = "c:/fasdf/asdfff/fff"
+        b = "d:/workspace/project/build/installer_myproject"
+        relpath = FileMan.getRelativePath(a, b)
+        assert relpath == "d:/workspace/project/build/installer_myproject"
+
+        a = "f:/sassss/asdsss/ssss"
+        b = "c:/workspace/project/build/installer_myproject"
+        relpath = FileMan.getRelativePath(a, b)
+        assert relpath == "c:/workspace/project/build/installer_myproject"
+    }
+
+    @Test
     @Ignore
     void findAllFile(){
         //Ready
         String rootPath = '/'
-        String fileName = 'meta.properties'
+        String fileName = 'rebel.xml'
+        String editResultPath = '../../'
         def condition = [
             'logback.xml'   : true,
-            '../../WEB-INF' : false,
+            '../../WEB-INF' : true,
         ]
 
-
+        //Simple Finder
         List<File> foundFileListTemp = FileMan.findAll(rootPath, fileName, condition)
-        println "${foundFileListTemp.size()}건이 검색되었습니다."
+        println "${foundFileListTemp.size()} was founded"
 
+        //RealTime Listing Finder
         int i = 0;
         List<File> foundFileList = FileMan.findAll(rootPath, fileName, condition) { File foundFile ->
-            println "${++i}) ${foundFile}"
+            String editedPath = FileMan.getFullPath(foundFile.path, editResultPath)
+            println "${++i}) ${editedPath}"
             return true
         }
-
-        println "${foundFileList.size()}건이 검색되었습니다."
+        println "${foundFileList.size()} was founded"
     }
 
 

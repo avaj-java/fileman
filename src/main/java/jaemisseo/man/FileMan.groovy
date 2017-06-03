@@ -1652,7 +1652,8 @@ class FileMan {
             return ''
         relativePath.split(/[\/\\]+/).each{ String next ->
             if (next.equals('..')){
-                nowPath = (new File(nowPath).isDirectory()) ? new File(nowPath).getParent() : new File(nowPath).getParentFile().getParent()
+                if (!isRootPath(nowPath))
+                    nowPath = (new File(nowPath).isDirectory()) ? new File(nowPath).getParent() : new File(nowPath).getParentFile().getParent()
             }else if (next.equals('.')){
                 // ignore
             }else if (next.equals('~')){
