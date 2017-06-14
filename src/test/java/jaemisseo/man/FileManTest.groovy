@@ -1,5 +1,6 @@
 package jaemisseo.man
 
+import jaemisseo.man.util.Util
 import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
@@ -109,10 +110,6 @@ class FileManTest {
             'logback.xml'   : true,
             '../../WEB-INF' : true,
         ]
-
-        //Simple Finder
-        List<File> foundFileListTemp = FileMan.findAll(rootPath, fileName, condition)
-        println "${foundFileListTemp.size()} was founded"
 
         //RealTime Listing Finder
         int i = 0;

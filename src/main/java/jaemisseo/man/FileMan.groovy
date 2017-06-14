@@ -1251,11 +1251,12 @@ class FileMan {
         filePathList = filePathList ?: getSubFilePathList(rootPath)
         int total = filePathList.size() - 1
         int barSize = 20
-        filePathList.eachWithIndex{ String onePath, int i ->
+        Util.eachWithCountAndProgressBar(filePathList, barSize){ String onePath, int count ->
             newEntryList = findAll(newEntryList, onePath, searchFileName){ File foundFile ->
-                return Util.withProgressBar(i, total, barSize){ (eachFoundFileClosure) ? eachFoundFileClosure(foundFile) : true }
+                return Util.withProgressBar(count, total, barSize){
+                    (eachFoundFileClosure) ? eachFoundFileClosure(foundFile) : true
+                }
             }
-            Util.withProgressBar(i, total, barSize)
         }
         return newEntryList
     }
