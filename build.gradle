@@ -39,7 +39,7 @@ dependencies {
     if (rootProject?.findProject('common-util'))
         compile project(':common-util')
     else
-        compile 'com.github.avaj-java:common-util:0.1.1'
+        compile 'com.github.avaj-java:common-util:0.1.39'
 
     //TAR
     compile 'org.apache.commons:commons-compress:1.11'
