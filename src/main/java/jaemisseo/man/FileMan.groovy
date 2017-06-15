@@ -527,7 +527,6 @@ class FileMan {
                 copy(sourceFile, destFile)
             }
         }
-        System.out.println("<Done>")
         return true
     }
 
@@ -541,8 +540,7 @@ class FileMan {
                 sourceChannel = new FileInputStream(sourceFile.path).getChannel()
                 destChannel = new FileOutputStream(destFile.path).getChannel()
                 destChannel.transferFrom(sourceChannel, 0, sourceChannel.size())
-                println "Copied: ${sourceFile.path}"
-                println "     => ${destFile.path}"
+                println "Copied: ${destFile.path}"
             }catch (Exception e){
                 e.printStackTrace()
                 throw e
@@ -615,7 +613,7 @@ class FileMan {
     }
 
     static boolean delete(List entryList, String sourceRootPath){
-        println "\nStart Deleting File"
+        println "\n<DELETE>"
         try{
             for (String file : entryList){
                 String path = sourceRootPath + File.separator + file
@@ -627,7 +625,6 @@ class FileMan {
                     rmdir(fileToDelete, [])
                 }
             }
-            println "<Done>"
 
         }catch(IOException ex){
             println "<Error>"
@@ -715,7 +712,6 @@ class FileMan {
         //Compress Zip
         byte[] buffer = new byte[BUFFER]
         ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(destPath))
-        println "\nStart Compressing ZIP"
         try{
             for (String file : entryList){
                 String path = sourceRootPath + File.separator + file
@@ -730,10 +726,9 @@ class FileMan {
                     fis.close()
                 }
             }
-            System.out.println("<Done>")
 
         }catch(IOException ex){
-            System.out.println("<Error>")
+            println "<Error>"
             ex.printStackTrace()
             throw ex
         }finally{
@@ -793,7 +788,6 @@ class FileMan {
         byte[] buffer = new byte[BUFFER]
 //        JarOutputStream jos = new JarOutputStream(new FileOutputStream(destPath), manifest)
         JarOutputStream jos = new JarOutputStream(new FileOutputStream(destPath))
-        println "\nStart Compressing JAR"
         try{
             for (String file : entryList){
                 String path = sourceRootPath + '/' + file
@@ -811,10 +805,9 @@ class FileMan {
                     bis.close()
                 }
             }
-            System.out.println("<Done>")
 
         }catch(IOException ex){
-            System.out.println("<Error>")
+            println "<Error>"
             ex.printStackTrace()
             throw ex
         }finally{
@@ -878,7 +871,6 @@ class FileMan {
         taos.setBigNumberMode(TarArchiveOutputStream.BIGNUMBER_STAR) // to get past the 8 gig limit
         // TAR originally didn't support long file names, so enable the support for it
         taos.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU)
-        println "\nStart Compressing TAR"
         try{
             for (String file : entryList){
                 String path = sourceRootPath + '/' + file
@@ -905,10 +897,9 @@ class FileMan {
                 }
                 taos.closeArchiveEntry()
             }
-            System.out.println("<Done>")
 
         }catch(IOException ex){
-            System.out.println("<Error>")
+            println "<Error>"
             ex.printStackTrace()
             throw ex
         }finally{
@@ -1009,7 +1000,6 @@ class FileMan {
                 }
                 /** Close the input stream **/
                 tais.close()
-                println "Untar Completed successfully!!\n"
 
             } catch (IOException ex) {
                 ex.printStackTrace()
@@ -1075,7 +1065,6 @@ class FileMan {
                 /** Close the input stream **/
                 zis.closeEntry()
                 zis.close()
-                println "Unzip Completed successfully!!\n"
 
             }catch(IOException ex){
                 ex.printStackTrace()
@@ -1143,7 +1132,6 @@ class FileMan {
                 }
                 /** Close the input stream **/
                 jar.close()
-                println "Unjar Completed successfully!!\n"
 
             } catch (IOException ex) {
                 ex.printStackTrace()
@@ -1160,7 +1148,6 @@ class FileMan {
     }
 
     static void logPath(String title, String sourcePath, String destPath){
-        println "${title}"
         println " - Source Path: ${sourcePath}"
         println " -   Dest Path: ${destPath}\n"
     }
