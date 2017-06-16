@@ -21,6 +21,7 @@ class FileManTest {
 
 //    static void main(String[] args) {
 //        new FileManTest().findAllFile()
+//        new FileManTest().findAllFileWithProgressBar()
 //    }
 
     @Test
@@ -113,9 +114,29 @@ class FileManTest {
 
         //RealTime Listing Finder
         int i = 0;
-        List<File> foundFileList = FileMan.findAll(rootPath, fileName, condition) { File foundFile ->
-            String editedPath = FileMan.getFullPath(foundFile.path, editResultPath)
-            println "${++i}) ${editedPath}"
+        List<File> foundFileList = FileMan.findAll(rootPath, fileName, condition){ File foundFile ->
+            println "${++i}) ${FileMan.getFullPath(foundFile.path, editResultPath)}"
+            return true
+        }
+        println "${foundFileList.size()} was founded"
+    }
+
+    @Test
+    @Ignore
+    void findAllFileWithProgressBar(){
+        //Ready
+        String rootPath = '/'
+        String fileName = 'rebel.xml'
+        String editResultPath = '../../'
+        def condition = [
+            'logback.xml'   : true,
+            '../../WEB-INF' : true,
+        ]
+
+        //RealTime Listing Finder
+        List<File> foundFileList = FileMan.findAllWithProgressBar(rootPath, fileName, condition){ data ->
+            int count = data.count
+            (data.stringList as List) << "${count}) ${FileMan.getFullPath((data.item as File).path, editResultPath)}"
             return true
         }
         println "${foundFileList.size()} was founded"

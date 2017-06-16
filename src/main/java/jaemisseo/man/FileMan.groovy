@@ -1205,58 +1205,108 @@ class FileMan {
     }
 
     static List<File> findAll(String rootPath, String searchFileName, Closure eachFoundFileClosure){
+        return findAll(rootPath, searchFileName, null, eachFoundFileClosure)
+    }
+
+    static List<File> findAll(String rootPath, String searchFileName, def condition){
+        return findAll(rootPath, searchFileName, condition, null)
+    }
+
+    static List<File> findAll(String rootPath, String searchFileName, def condition, Closure eachFoundFileClosure){
         List<File> newEntryList = []
-        List<File> filePathList = []
-        
-        //Root of FileSystem => 정확한 루트를 따진다. (Windows Drive...)
-        if (isRootPath(rootPath)){
-            List<File> rootList = new File('/').listRoots()
-            //Maybe on Windows
-            if (rootList && rootList.size() > 1){
-                if (rootPath.equals('/')){
-                    rootList.each{ File root ->
-                        String rootName = root.toString()
-                        rootName = rootName.contains('*') ? rootName : "${rootName}/*"
-                        filePathList.addAll(getSubFilePathList(rootName))
-                    }
-                }else{
-                    String rootKeyString = rootPath.replaceAll('\\W*', '')?.toUpperCase()
-                    String rootName = rootList.find { it.toString().contains(rootKeyString) }
-                    if (rootName){
-                        rootName = rootName.contains('*') ? rootName : "${rootName}/*"
-                        filePathList = getSubFilePathList(rootName)
-                    }
-                }
-                
-            //Maybe on Others(Unix & Linux)
-            }else{
-                rootPath = rootPath.contains('*') ? rootPath : "${rootPath}/*"
-            }
-        }
-        
+        List<File> filePathList = getSubFilePathList(rootPath)
+
         // Find File
-        filePathList = filePathList ?: getSubFilePathList(rootPath)
-        int total = filePathList.size() - 1
-        int barSize = 20
-        Util.eachWithCountAndProgressBar(filePathList, barSize){ String onePath, int count ->
-            newEntryList = findAll(newEntryList, onePath, searchFileName){ File foundFile ->
-                return Util.withProgressBar(count, total, barSize){
-                    (eachFoundFileClosure) ? eachFoundFileClosure(foundFile) : true
+        filePathList.eachWithIndex{ String onePath, int i ->
+            newEntryList = findAll(newEntryList, onePath, searchFileName) { File foundFile ->
+                String foundFilePath = foundFile.getPath()
+                Map result = [:]
+                result[new File(foundFilePath).getName()] = true
+                def foundObject = Util.find(result, condition) { dataObject, conditionObject ->
+                    //파일 존재 검사후, 조건값과 비교
+                    Map matchedObject = conditionObject.findAll { path, existCondition ->
+                        boolean isExist = new File(getLastDirectoryPath(foundFilePath), path).exists()
+                        return (isExist == existCondition)
+                    }
+                    //모두 일치하면 True
+                    return (matchedObject.size() == conditionObject.size())
+                }
+
+                //조건 일치시
+                if (foundObject) {
+                    return (eachFoundFileClosure) ? eachFoundFileClosure(foundFile) : true
+                } else {
+                    return false
                 }
             }
         }
         return newEntryList
     }
 
+    /*************************
+     * Find File - with Condition, progressBar
+     * 1. You can get parameter made by type of Map, When you use closure.
+     *
+     * 2. If you wanna print some, then you can add Some String to data.stringList on the closure.
+     * - ex)
+     *      data.stringList.add("String you wanna say")
+     *************************/
+    static List<File> findAllWithProgressBar(String rootPath, String searchFileName){
+        return findAllWithProgressBar(rootPath, searchFileName, null, null)
+    }
 
+    static List<File> findAllWithProgressBar(String rootPath, String searchFileName, Closure closure){
+        return findAllWithProgressBar(rootPath, searchFileName, null, closure)
+    }
 
+    static List<File> findAllWithProgressBar(String rootPath, String searchFileName, def condition){
+        return findAllWithProgressBar(rootPath, searchFileName, condition, null)
+    }
+
+    static List<File> findAllWithProgressBar(String rootPath, String searchFileName, def condition, Closure eachFoundFileClosure){
+        List<File> newEntryList = []
+        List<File> filePathList = getSubFilePathList(rootPath)
+        int barSize = 20
+        int count = 0
+
+        // Find File
+        Util.eachWithTimeProgressBar(filePathList, barSize){ data ->
+            String onePath = data.item
+            newEntryList = findAll(newEntryList, onePath, searchFileName){ File foundFile ->
+                String foundFilePath = foundFile.getPath()
+                Map result = [:]
+                result[new File(foundFilePath).getName()] = true
+                def foundObject = Util.find(result, condition){ dataObject, conditionObject ->
+                    //파일 존재 검사후, 조건값과 비교
+                    Map matchedObject = conditionObject.findAll{ path, existCondition ->
+                        boolean isExist = new File(getLastDirectoryPath(foundFilePath), path).exists()
+                        return (isExist == existCondition)
+                    }
+                    //모두 일치하면 True
+                    return (matchedObject.size() == conditionObject.size())
+                }
+
+                //조건 일치시
+                if (foundObject){
+                    Map foundData = [item:foundFile, count:++count, stringList:data.stringList]
+                    return (eachFoundFileClosure) ? eachFoundFileClosure(foundData) : true
+                }else{
+                    return false
+                }
+            }
+        }
+        return newEntryList
+    }
+
+    /*************************
+     * Find File (Core - Recursively)
+     *************************/
     static List<File> findAll(List<String> entryList, String filePath, String searchFileName){
         return findAll(entryList, filePath, searchFileName, null)
     }
-    
+
     static List<File> findAll(List<String> entryList, String filePath, String searchFileName, Closure eachFoundFileClosure){
         File node = new File(filePath)
-
         if (node.getName().equals(searchFileName)){
             if (eachFoundFileClosure){
                 if (eachFoundFileClosure(node)){
@@ -1277,42 +1327,7 @@ class FileMan {
     }
 
 
-    /*************************
-     * Find File - with Condition
-     *************************/
-    static List<File> findAll(String rootPath, String searchFileName, def condition){
-        return findAll(rootPath, searchFileName, condition, null)
-    }
-    
-    static List<File> findAll(String rootPath, String searchFileName, def condition, Closure eachFoundFileClosure){
-        //조건 검색
-        List<File> foundFileList = findAll(rootPath, searchFileName){ File foundFile ->
-            String foundFilePath = foundFile.getPath()
-            Map result = [:]
-            result[new File(foundFilePath).getName()] = true
-            def foundObject = Util.find(result, condition){ dataObject, conditionObject ->
-                //파일 존재 검사후, 조건값과 비교
-                Map matchedObject = conditionObject.findAll{ path, existCondition ->
-                    boolean isExist = new File(getLastDirectoryPath(foundFilePath), path).exists()
-                    return (isExist == existCondition)
-                }
-                //모두 일치하면 True
-                return (matchedObject.size() == conditionObject.size())
-            }
-            //조건 일치시
-            if (foundObject){
-                if (eachFoundFileClosure)
-                    return eachFoundFileClosure(foundFile)
-                else
-                    return true
-            }
-            return false
-        }
-        return foundFileList
-    }
 
-    
-    
 
     
     static boolean isMatchedPath(String onePath, rangePath){
@@ -1326,27 +1341,57 @@ class FileMan {
 
     static List<String> getSubFilePathList(String filePath, String extension){
         def filePathList = []
-        String fullPath = getFullPath(filePath)
-        File file = new File(fullPath)
-        // check files (new)
-        if (!fullPath){
-        }else if (fullPath.contains('*')){
-            new File(fullPath).getParentFile().listFiles().each{ File f ->
-                if (isMatchedPath(f.path, fullPath))
-                    filePathList << f.path
+
+        //Root of FileSystem => 정확한 루트를 따진다. (Windows Drive...)
+        if (isRootPath(filePath)){
+            List<File> rootList = new File('/').listRoots()
+            //Maybe on Windows
+            if (rootList && rootList.size() > 1){
+                if (filePath.equals('/')){
+                    rootList.each{ File root ->
+                        String rootName = root.toString()
+                        rootName = rootName.contains('*') ? rootName : "${rootName}/*"
+                        filePathList.addAll(getSubFilePathList(rootName))
+                    }
+                }else{
+                    String rootKeyString = filePath.replaceAll('\\W*', '')?.toUpperCase()
+                    String rootName = rootList.find { it.toString().contains(rootKeyString) }
+                    if (rootName){
+                        rootName = rootName.contains('*') ? rootName : "${rootName}/*"
+                        filePathList = getSubFilePathList(rootName)
+                    }
+                }
+
+                //Maybe on Others(Unix & Linux)
+            }else{
+                filePath = filePath.contains('*') ? filePath : "${filePath}/*"
             }
         }else{
-            filePathList << new File(fullPath).path
-        }
-        // check extension
-        if (extension){
-            filePathList = filePathList.findAll{
-                int lastDotIdx = it.lastIndexOf('.')
-                String itExtension = it.substring(lastDotIdx+1).toUpperCase()
-                String acceptExtension = extension.toUpperCase()
-                return ( itExtension.equals(acceptExtension) )
+            //
+            String fullPath = getFullPath(filePath)
+            File file = new File(fullPath)
+            // check files (new)
+            if (!fullPath){
+            }else if (fullPath.contains('*')){
+                new File(fullPath).getParentFile().listFiles().each{ File f ->
+                    if (isMatchedPath(f.path, fullPath))
+                        filePathList << f.path
+                }
+            }else{
+                filePathList << new File(fullPath).path
+            }
+            // check extension
+            if (extension){
+                filePathList = filePathList.findAll{
+                    int lastDotIdx = it.lastIndexOf('.')
+                    String itExtension = it.substring(lastDotIdx+1).toUpperCase()
+                    String acceptExtension = extension.toUpperCase()
+                    return ( itExtension.equals(acceptExtension) )
+                }
             }
         }
+
+
         return filePathList
     }
 
