@@ -192,14 +192,16 @@ class FileMan {
                     if (fileToDelete.isDirectory()){
                         rmdir(fileToDelete, excludePathList)
                     }else{
-                        log.info("Deleting ${fileToDelete.path}")
+//                        log.info("Deleting ${fileToDelete.path}")
+                        println "Deleting ${fileToDelete.path}"
                         if (!fileToDelete.delete())
                             log.info(" - Failed - To Delete ${fileToDelete.path}")
                     }
                 }
             }
             // Delete Empty Directory
-            log.info("Deleting ${dirToDelete.path}")
+//            log.info("Deleting ${dirToDelete.path}")
+            println "Deleting ${dirToDelete.path}"
             if (!dirToDelete.delete())
                 log.info(" - Failed - To Delete ${dirToDelete.path}")
         }
@@ -251,11 +253,17 @@ class FileMan {
         return isOk
     }
 
-    static boolean mkdirs(String path, Map buildStructureMap){
+    static boolean mkdirs(String path, Map buildStructureMap, boolean modeLog){
         //Log
-        println "- Structure: ${buildStructureMap}"
-        println "- Dest Path: ${path}"
+        if (modeLog){
+            println "- Structure: ${buildStructureMap}"
+            println "- Dest Path: ${path}"
+        }
         //Make Directory Structure
+        return mkdirs(path, buildStructureMap)
+    }
+
+    static boolean mkdirs(String path, Map buildStructureMap){
         buildStructureMap.each{
             //Make Directory
             String directoryName = it.key
@@ -613,7 +621,6 @@ class FileMan {
     }
 
     static boolean delete(List entryList, String sourceRootPath){
-        println "\n<DELETE>"
         try{
             for (String file : entryList){
                 String path = sourceRootPath + File.separator + file
