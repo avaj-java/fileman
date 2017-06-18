@@ -144,12 +144,20 @@ class FileManTest {
 
     @Test
     @Ignore
-    void testGenEntryList(){
+    void testGenEntryListFromZipFile(){
         String destPath = ''
         String filePath = ''
         List<String> entryList = FileMan.genEntryListFromZipFile(filePath)
         println FileMan.checkFiles(destPath, entryList, false)
     }
 
+    @Test
+    @Ignore
+    void testGenEntryListFromJarFile(){
+        String destPath = ''
+        String filePath = ''
+        List<String> entryList = FileMan.genEntryListFromJarFile(filePath)
+        println FileMan.checkFiles(destPath, entryList, false)
+    }
 
 }

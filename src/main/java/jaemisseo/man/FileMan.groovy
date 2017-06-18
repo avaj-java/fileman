@@ -389,6 +389,7 @@ class FileMan {
     }
 
     static boolean checkFiles(String destPath, List<String> entry, boolean modeAutoOverWrite){
+        destPath = getFullPath(replaceWeirdString(destPath))
         if (!modeAutoOverWrite) {
             if (isFile(destPath) || new File(destPath).isFile()) {
                 checkFile(destPath)
@@ -417,6 +418,7 @@ class FileMan {
 
     static boolean isRootPath(String filePath){
         try{
+            filePath = replaceWeirdString(filePath)
             //Simplely Check
             if (!filePath)
                 return false
@@ -1228,6 +1230,7 @@ class FileMan {
      *************************/
     static List<String> genEntryListFromZipFile(String sourcePath){
         List<String> newEntryList = []
+        sourcePath = getFullPath(replaceWeirdString(sourcePath))
         String rootPath = new File(sourcePath).getParentFile().getPath()
         List<String> filePathList = getSubFilePathList(sourcePath)
         filePathList.each{ String onePath ->
@@ -1262,6 +1265,7 @@ class FileMan {
      *************************/
     static List<String> genEntryListFromJarFile(String sourcePath){
         List<String> newEntryList = []
+        sourcePath = getFullPath(replaceWeirdString(sourcePath))
         String rootPath = new File(sourcePath).getParentFile().getPath()
         List<String> filePathList = getSubFilePathList(sourcePath)
         filePathList.each{ String onePath ->
@@ -1278,7 +1282,8 @@ class FileMan {
             Enumeration enumEntries = jar.entries()
             JarEntry entry
             /** Read the jar entries using the nextElement method **/
-            while ( (entry = (JarEntry) enumEntries.nextElement()) != null ) {
+            while ( enumEntries.hasMoreElements() ){
+                entry = (JarEntry) enumEntries.nextElement()
                 entryList << entry.getName()
             }
             /** Close the input stream **/
@@ -1288,6 +1293,7 @@ class FileMan {
             ex.printStackTrace()
             throw ex
         }
+        return entryList
     }
 
     /*************************
@@ -1295,6 +1301,7 @@ class FileMan {
      *************************/
     static List<String> genEntryListFromTarFile(String sourcePath){
         List<String> newEntryList = []
+        sourcePath = getFullPath(replaceWeirdString(sourcePath))
         String rootPath = new File(sourcePath).getParentFile().getPath()
         List<String> filePathList = getSubFilePathList(sourcePath)
         filePathList.each{ String onePath ->
@@ -1323,6 +1330,7 @@ class FileMan {
             ex.printStackTrace()
             throw ex
         }
+        return entryList
     }
 
     
@@ -1846,7 +1854,7 @@ class FileMan {
     }
 
     static boolean startsWithRootPath(String filePath){
-        filePath = new File(filePath).getPath().replaceAll(/[\/\\]+/, '/')
+        filePath = replaceWeirdString(filePath)
 
         //Simplely Check
         if (!filePath)
@@ -1860,8 +1868,8 @@ class FileMan {
 
         //Analisys Path
         String rootName
-        List fromOriginDepthList = filePath.split(/[\/\\]/) - [""]
-        rootName = (fromOriginDepthList[0] as String)?.toUpperCase()
+        List<String> fromOriginDepthList = filePath.split(/[\/\\]+/) - [""]
+        rootName = fromOriginDepthList[0].toUpperCase()
 
         //Maybe Windows Driver Check
         if (rootName){
@@ -1873,6 +1881,7 @@ class FileMan {
                     return false
             }
         }
+        return false
     }
 
     static boolean isDifferentRootDir(String from, String to){
@@ -1886,6 +1895,13 @@ class FileMan {
         return result
     }
 
+    static String replaceWeirdString(String string){
+        byte[] bytes = string.getBytes()
+        int length = bytes.length
+        if (length > 3 && bytes[0] == -30 && bytes[1] == -128 && bytes[2] == -86)
+            string = new String(bytes, 3, length -3)
+        return string
+    }
 
 
     /**
