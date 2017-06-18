@@ -1142,7 +1142,8 @@ class FileMan {
                 Enumeration enumEntries = jar.entries()
                 JarEntry entry
                 /** Read the jar entries using the nextElement method **/
-                while ( (entry = (JarEntry) enumEntries.nextElement()) != null ) {
+                while (enumEntries.hasMoreElements()) {
+                    entry = (JarEntry) enumEntries.nextElement()
                     File file = new File(destPath, entry.getName())
                     println "Extracting: ${file.getAbsolutePath()}"
                     if (entry.isDirectory()) {
@@ -1282,7 +1283,7 @@ class FileMan {
             Enumeration enumEntries = jar.entries()
             JarEntry entry
             /** Read the jar entries using the nextElement method **/
-            while ( enumEntries.hasMoreElements() ){
+            while (enumEntries.hasMoreElements()){
                 entry = (JarEntry) enumEntries.nextElement()
                 entryList << entry.getName()
             }
