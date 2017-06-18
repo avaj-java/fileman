@@ -1,6 +1,5 @@
 package jaemisseo.man
 
-import jaemisseo.man.util.Util
 import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
@@ -27,28 +26,29 @@ class FileManTest {
     @Test
     @Ignore
     void isRootPath(){
-        assert FileMan.isRootPath('/d')
-        assert FileMan.isRootPath('/d/')
-        assert FileMan.isRootPath('/d////')
-        assert FileMan.isRootPath('/d////\\\\')
-        assert FileMan.isRootPath('d/') == false
-        assert FileMan.isRootPath('/')
-        assert FileMan.isRootPath('') == false
-        assert FileMan.isRootPath('c/') == false
-        assert FileMan.isRootPath('/c/')
-        assert FileMan.isRootPath('c:/')
-        assert FileMan.isRootPath('c:\\')
-        assert FileMan.isRootPath('p:\\') == false
-        assert FileMan.isRootPath('gh:\\') == false
+        List correctList = ['/d', '/d/', '/d////', '/d////\\\\', '/', '/c/', 'c:/', 'c:\\']
+        List wrongList = ['c', 'd', 'd/', '', 'c/', 'p:\\', 'gh:\\', 'asdfasf', 'ccc', 'c:c']
+
+        correctList.each{
+            assert FileMan.isRootPath(it)
+        }
+        wrongList.each{
+            assert FileMan.isRootPath(it) == false
+        }
     }
 
     @Test
     @Ignore
-    void isItStartsWithRootPath(){
-        assert FileMan.isItStartsWithRootPath('/d')
-        assert FileMan.isItStartsWithRootPath('/d/')
-        assert FileMan.isItStartsWithRootPath('d/')
-        assert FileMan.isItStartsWithRootPath('/o')
+    void startsWithRootPath(){
+        List correctList = ['/d', '/d/', '/d////', '/d////\\\\', '/', '/c/', 'c:/', 'c:\\']
+        List wrongList = ['c', 'd', 'd/', '', 'c/', 'p:\\', 'gh:\\', 'asdfasf', 'ccc', 'c:c']
+
+        correctList.each{
+            assert FileMan.startsWithRootPath(it)
+        }
+        wrongList.each{
+            assert FileMan.startsWithRootPath(it) == false
+        }
     }
 
     @Test
@@ -134,12 +134,21 @@ class FileManTest {
         ]
 
         //RealTime Listing Finder
-        List<File> foundFileList = FileMan.findAllWithProgressBar(rootPath, fileName, condition){ data ->
+        List<File> foundFileList = FileMan.findAllWithProgressBar(rootPath, fileName, condition) { data ->
             int count = data.count
             (data.stringList as List) << "${count}) ${FileMan.getFullPath((data.item as File).path, editResultPath)}"
             return true
         }
         println "${foundFileList.size()} was founded"
+    }
+
+    @Test
+    @Ignore
+    void testGenEntryList(){
+        String destPath = ''
+        String filePath = ''
+        List<String> entryList = FileMan.genEntryListFromZipFile(filePath)
+        println FileMan.checkFiles(destPath, entryList, false)
     }
 
 
