@@ -36,10 +36,7 @@ repositories {
 
 dependencies {
 
-    if (rootProject?.findProject('common-util'))
-        compile project(':common-util')
-    else
-        compile 'com.github.avaj-java:common-util:0.1.61'
+    compile (rootProject?.findProject('common-util')) ? project(':common-util') : 'com.github.avaj-java:common-util:0.1.61'
 
     //TAR
     compile 'org.apache.commons:commons-compress:1.11'
