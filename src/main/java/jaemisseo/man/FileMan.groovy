@@ -997,7 +997,7 @@ class FileMan {
         String destRootPath = getLastDirectoryPath(destPath)
         //Check Dest
         checkDir(destPath, opt.modeAutoMkdir)
-//        checkFiles(destPath, entryList, opt.modeAutoOverWrite)
+        checkFiles(destPath, entryList, opt.modeAutoOverWrite)
         //Log
         startLogPath('UNTAR', sourcePath, destPath)
         //Tar File To Dest

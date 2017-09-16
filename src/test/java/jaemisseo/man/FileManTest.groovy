@@ -52,6 +52,7 @@ class FileManTest {
     }
 
     @Test
+    @Ignore
     void getRelativePath(){
         String a, b, relpath
 
