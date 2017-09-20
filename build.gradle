@@ -7,6 +7,22 @@ apply plugin: 'idea'
 sourceCompatibility = 1.5
 
 
+
+/*************************
+ * If Parent Gradle is Not modeDevelopment,
+ *      Then, No need build.
+ *************************/
+if (project.hasProperty('modeParentDev')){
+    boolean modeParentDev = project.getProperty('modeParentDev')
+    if (!modeParentDev){
+        tasks.each{ it.onlyIf{false} }
+        clean.onlyIf{false}
+        build.onlyIf{false}
+    }
+}
+
+
+
 sourceSets {
     main {
         groovy {
