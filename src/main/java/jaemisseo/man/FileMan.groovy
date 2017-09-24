@@ -1334,10 +1334,74 @@ class FileMan {
         return entryList
     }
 
-    
+
 
     /*************************
      * Find File
+     *************************/
+    static File find(String fileName){
+        return find([fileName])
+    }
+
+    static File find(List<String> searchFileNameList){
+        return find('', searchFileNameList)
+    }
+
+    static File find(String rootPath, String fileName){
+        return find(rootPath, [fileName])
+    }
+
+    static File find(String rootPath, String fileName, List<String> extensionList){
+        List fileNameList = extensionList.collect{ String extension -> "${fileName}.${extension}" }
+        return find(rootPath, fileNameList)
+    }
+
+    static File find(String rootPath, List<String> searchFileNameList){
+        File foundFile
+        for (String fileName : searchFileNameList){
+            File file = new File(rootPath?:'./', fileName)
+            if (file.exists()){
+                foundFile = file
+                break
+            }
+        }
+        return foundFile
+    }
+
+    /*************************
+     * Find Resource
+     *************************/
+    static File findResource(String fileName){
+        return findResource([fileName])
+    }
+
+    static File findResource(List<String> searchFileNameList){
+        return findResource('', searchFileNameList)
+    }
+
+    static File findResource(String rootPath, String fileName){
+        return findResource(rootPath, [fileName])
+    }
+
+    static File findResource(String rootPath, String fileName, List<String> extensionList){
+        List fileNameList = extensionList.collect{ String extension -> "${fileName}.${extension}" }
+        return findResource(rootPath, fileNameList)
+    }
+
+    static File findResource(String rootPath, List<String> searchFileNameList){
+        File foundFile
+        for (String fileName : searchFileNameList){
+            File file = getFileFromResource( (rootPath) ? "${rootPath}/${fileName}" : fileName )
+            if (file && file.exists()){
+                foundFile = file
+                break
+            }
+        }
+        return foundFile
+    }
+
+    /*************************
+     * Find All File
      *************************/
     static List<File> findAll(String rootPath, String searchFileName){
         return findAll(rootPath, searchFileName, null)
@@ -1538,12 +1602,16 @@ class FileMan {
         //Works in IDE
 //        URL url = getClass().getResource(absolutePath);
         URL url = Thread.currentThread().getContextClassLoader().getResource(resourcePath)
+        int fileNameLastDotIndex = resourcePath.lastIndexOf('.')
+        String fileNameExtension = (fileNameLastDotIndex != -1) ? resourcePath.substring(fileNameLastDotIndex +1)?.toLowerCase() : ''
         File file
-        if (url.toString().startsWith("jar:")){
+        if (!url){
+            file = null
+        }else if (url.toString().startsWith("jar:")){
             //Works in JAR
             try {
                 InputStream input = getClass().getResourceAsStream("/${resourcePath}")
-                file = File.createTempFile("tempfile", ".tmp")
+                file = File.createTempFile("tempfile", ".${fileNameExtension}")
                 OutputStream out = new FileOutputStream(file)
                 int len
                 byte[] bytes = new byte[1024]
@@ -1842,6 +1910,27 @@ class FileMan {
     FileSetup getMergedOption(FileSetup opt){
         return globalOption.clone().merge(opt)
     }
+
+    /*****
+     * Get File's Extension
+     *****/
+    static String getExtension(File file){
+        if (file)
+            return getExtension(file.name)
+        return null
+    }
+
+    static String getExtension(String filePath){
+        String fileNameExtension
+        if (filePath){
+            int fileNameLastDotIndex = filePath.lastIndexOf('.')
+            fileNameExtension = (fileNameLastDotIndex != -1) ? filePath.substring(fileNameLastDotIndex +1)?.toLowerCase() : ''
+        }
+        return fileNameExtension
+    }
+
+
+
 
     /*****
      * Check Exclude File
