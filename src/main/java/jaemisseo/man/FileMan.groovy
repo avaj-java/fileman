@@ -352,6 +352,7 @@ class FileMan {
             throw new IOException('No Dest Path, Please Set Dest Path.')
         if (isRootPath(destPath))
             throw new IOException('Dest Path naver be seted set rootPath on FileSystem.')
+        return true
     }
 
     static boolean checkDir(String path, boolean modeAutoMkdir){
@@ -371,6 +372,7 @@ class FileMan {
     static boolean checkFile(String path){
         if (new File(path).exists())
             throw new Exception("\n < Failed to WRITE File > File Already Exists. ${path}", new Throwable("Check Please. ${path}"))
+        return true
     }
 
     static boolean checkFile(String path, boolean modeAutoOverWrite){
@@ -528,7 +530,7 @@ class FileMan {
     }
 
     static boolean copy(String sourcePath, String destPath, boolean modeAutoMkdir){
-        copy(sourcePath, destPath, new FileSetup(modeAutoMkdir: modeAutoMkdir))
+        return copy(sourcePath, destPath, new FileSetup(modeAutoMkdir: modeAutoMkdir))
     }
 
     static boolean copy(String sourcePath, String destPath, FileSetup opt){
