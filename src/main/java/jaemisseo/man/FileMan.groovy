@@ -1537,7 +1537,8 @@ class FileMan {
 
     
     static boolean isMatchedPath(String onePath, rangePath){
-        String regexpStr = rangePath.replaceAll(/[\/\\]+/, '/').replace('*',"[^\\/\\\\]*").replace('.', '\\.')
+        String regexpStr = rangePath.replaceAll(/[\/\\]+/, '/').replace('*',"[^\\/\\\\]*")
+                                    .replace('(', '\\(').replace(')', '\\)').replace('.', '\\.').replace('$', '\\$')
         return onePath.replace('\\', '/').matches(regexpStr)
     }
 
@@ -1568,7 +1569,7 @@ class FileMan {
                     }
                 }
 
-                //Maybe on Others(Unix & Linux)
+            //Maybe on Others(Unix & Linux)
             }else{
                 filePath = filePath.contains('*') ? filePath : "${filePath}/*"
             }
