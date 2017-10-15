@@ -7,12 +7,13 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import java.nio.channels.FileChannel
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
-import java.util.logging.Logger
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import java.util.zip.ZipEntry
@@ -40,7 +41,7 @@ class FileMan {
         nowPath = System.getProperty('user.dir')
     }
 
-    private static final Logger log = Logger.getLogger(FileMan.class.getName());
+    static final Logger logger = LoggerFactory.getLogger(FileMan.getClass());
 
     boolean directoryAutoCreateUse = true
 
@@ -74,23 +75,23 @@ class FileMan {
         // 3-1. 기존 백업파일 지우기
         if (dirForBackup.exists())
             emptyDirectory(dirPathToBackup, deleteExcludeList)
-        log.info('\n < FINISHED Delete > Backup Files')
+        logger.debug('\n < FINISHED Delete > Backup Files')
         // 3-2. 디렉토리 체크 or 자동생성
         if (directoryAutoCreateUse){
             if ( !dirForSave.exists() && dirForSave.mkdirs() )
-                log.info('\n < AUTO CREATE Directory > Save Directory')
+                logger.debug('\n < AUTO CREATE Directory > Save Directory')
             if ( !dirForBackup.exists() && dirForBackup.mkdirs() )
-                log.info('\n < AUTO CREATE Directory > Backup Directory')
+                logger.debug('\n < AUTO CREATE Directory > Backup Directory')
         }
         // 3-3. 기존 파일들을 -> 백업 디렉토리로 이동
         if ( dirForSave.exists() && dirForBackup.exists() ){
-            log.info('\n < CHECK Directory > OK')
+            logger.debug('\n < CHECK Directory > OK')
             if ( !moveAllInDirectory(dirPathToSave, dirPathToBackup, moveExcludeList) )
                 throw new Exception('\n[MOVE Failed] Move Exist FIles To Backup Directory', new Throwable("You Need To Check Permission Check And... Some... "))
         }else{
             throw new Exception('\n[CHECK Failed] Some Directory Does Not Exists', new Throwable("Directory Exist Check - SaveDirectory:${dirForSave.exists()} / BackupDirectory:${dirForBackup.exists()}"))
         }
-        log.info('\n < FINISHED Move > Move Exist FIles To Backup Directory')
+        logger.debug('\n < FINISHED Move > Move Exist FIles To Backup Directory')
         return true
     }
 
@@ -172,9 +173,9 @@ class FileMan {
                 if (fileToDelete.isDirectory()){
                     rmdir(fileToDelete, excludePathList)
                 }else{
-                    log.info("Deleting ${fileToDelete.path}")
+                    logger.debug("Deleting ${fileToDelete.path}")
                     if (!fileToDelete.delete())
-                        log.info(" - Failed - To Delete ${fileToDelete.path}")
+                        logger.info(" - Failed - To Delete ${fileToDelete.path}")
                 }
             }
         }
@@ -193,18 +194,18 @@ class FileMan {
                     if (fileToDelete.isDirectory()){
                         rmdir(fileToDelete, excludePathList)
                     }else{
-//                        log.info("Deleting ${fileToDelete.path}")
-                        println "Deleting ${fileToDelete.path}"
+//                        logger.info("Deleting ${fileToDelete.path}")
+                        logger.debug "Deleting ${fileToDelete.path}"
                         if (!fileToDelete.delete())
-                            log.info(" - Failed - To Delete ${fileToDelete.path}")
+                            logger.info " - Failed - To Delete ${fileToDelete.path}"
                     }
                 }
             }
             // Delete Empty Directory
-//            log.info("Deleting ${dirToDelete.path}")
-            println "Deleting ${dirToDelete.path}"
+//            logger.info("Deleting ${dirToDelete.path}")
+            logger.debug "Deleting ${dirToDelete.path}"
             if (!dirToDelete.delete())
-                log.info(" - Failed - To Delete ${dirToDelete.path}")
+                logger.info " - Failed - To Delete ${dirToDelete.path}"
         }
         return true
     }
@@ -219,7 +220,7 @@ class FileMan {
             if ( !isExcludeFile(fileToMove, excludePathList) ){
                 File afterFile  = new File(afterDirPath, fileToMove.name)
                 if (fileToMove.renameTo(afterFile)){
-                    log.info("\n - Complete - Move ${fileToMove.path} To ${afterFile.path}")
+                    logger.debug("\n - Complete - Move ${fileToMove.path} To ${afterFile.path}")
                 }
             }
         }
@@ -249,7 +250,7 @@ class FileMan {
             dir.setReadable(true, false)
             dir.setExecutable(true, false)
             dir.setWritable(true, false)
-            println "Created Directory: ${dir.path}"
+            logger.debug "Created Directory: ${dir.path}"
         }
         return isOk
     }
@@ -257,8 +258,8 @@ class FileMan {
     static boolean mkdirs(String path, Map buildStructureMap, boolean modeLog){
         //Log
         if (modeLog){
-            println "- Structure: ${buildStructureMap}"
-            println "- Dest Path: ${path}"
+            logger.debug "- Structure: ${buildStructureMap}"
+            logger.debug "- Dest Path: ${path}"
         }
         //Make Directory Structure
         return mkdirs(path, buildStructureMap)
@@ -510,9 +511,9 @@ class FileMan {
                 else
                     out.print ( fileContentLineList.join(opt.lineBreak) + ((opt.lastLineBreak)?:'') )
             }
-            log.info(" - Complete - Create ${file.path} \n")
+            logger.debug(" - Complete - Create ${file.path} \n")
         }catch(Exception e){
-            log.info(" - Failed - To Create ${file.path} \n")
+            logger.error(" - Failed - To Create ${file.path} \n")
             throw new Exception(" < Failed to WRITE File >", new Throwable("You Need To Check Permission Check And... Some... "))
         }
         return true
@@ -572,7 +573,7 @@ class FileMan {
                 sourceChannel = new FileInputStream(sourceFile.path).getChannel()
                 destChannel = new FileOutputStream(destFile.path).getChannel()
                 destChannel.transferFrom(sourceChannel, 0, sourceChannel.size())
-                println "Copied: ${destFile.path}"
+                logger.debug "Copied: ${destFile.path}"
             }catch (Exception e){
                 e.printStackTrace()
                 throw e
@@ -649,7 +650,7 @@ class FileMan {
             for (String file : entryList){
                 String path = sourceRootPath + File.separator + file
                 File fileToDelete = new File(path)
-                println "Deleting: ${file}"
+                logger.debug "Deleting: ${file}"
                 if (fileToDelete.isFile()){
                     fileToDelete.delete()
                 }else{
@@ -658,7 +659,7 @@ class FileMan {
             }
 
         }catch(IOException ex){
-            println "<Error>"
+            logger.error "<Error>"
             ex.printStackTrace()
             throw ex
         }finally{
@@ -746,7 +747,7 @@ class FileMan {
         try{
             for (String file : entryList){
                 String path = sourceRootPath + File.separator + file
-                println "Compressing: ${file}"
+                logger.debug "Compressing: ${file}"
                 zos.putNextEntry(new ZipEntry(file))
                 if (new File(path).isFile()){
                     FileInputStream fis = new FileInputStream(path)
@@ -759,7 +760,7 @@ class FileMan {
             }
 
         }catch(IOException ex){
-            println "<Error>"
+            logger.error "<Error>"
             ex.printStackTrace()
             throw ex
         }finally{
@@ -824,7 +825,7 @@ class FileMan {
                 String path = sourceRootPath + '/' + file
                 path = path.replace("\\", "/")
                 file = file.replace("\\", "/")
-                println "Compressing: ${file}"
+                logger.debug "Compressing: ${file}"
                 JarEntry entry = new JarEntry(file)
                 jos.putNextEntry(entry)
                 if (new File(path).isFile()){
@@ -838,7 +839,7 @@ class FileMan {
             }
 
         }catch(IOException ex){
-            println "<Error>"
+            logger.error "<Error>"
             ex.printStackTrace()
             throw ex
         }finally{
@@ -907,7 +908,7 @@ class FileMan {
                 String path = sourceRootPath + '/' + file
                 path = path.replace("\\", "/")
                 file = file.replace("\\", "/")
-                println "Compressing: ${file}"
+                logger.debug "Compressing: ${file}"
                 TarArchiveEntry entry = new TarArchiveEntry(new File(file), file)
                 if (new File(path).isFile()) {
                     entry.setSize(new File(path).length())
@@ -930,7 +931,7 @@ class FileMan {
             }
 
         }catch(IOException ex){
-            println "<Error>"
+            logger.error "<Error>"
             ex.printStackTrace()
             throw ex
         }finally{
@@ -1015,7 +1016,7 @@ class FileMan {
                 /** Read the tar entries using the getNextEntry method **/
                 while ( (entry = (TarArchiveEntry) tais.getNextEntry()) != null ) {
                     File file = new File(destPath, entry.getName())
-                    println "Extracting: ${file.getAbsolutePath()}"
+                    logger.debug "Extracting: ${file.getAbsolutePath()}"
                     if (entry.isDirectory()) {
                         file.mkdirs()
                     } else {
@@ -1080,7 +1081,7 @@ class FileMan {
                 /** Read the zip entries using the getNextEntry method **/
                 while ( (entry = zis.getNextEntry()) != null ){
                     File file = new File(destPath, entry.getName())
-                    println "Extracting: ${file.getAbsolutePath()}"
+                    logger.debug "Extracting: ${file.getAbsolutePath()}"
                     if (entry.isDirectory()){
                         file.mkdirs()
                     }else{
@@ -1147,7 +1148,7 @@ class FileMan {
                 while (enumEntries.hasMoreElements()) {
                     entry = (JarEntry) enumEntries.nextElement()
                     File file = new File(destPath, entry.getName())
-                    println "Extracting: ${file.getAbsolutePath()}"
+                    logger.debug "Extracting: ${file.getAbsolutePath()}"
                     if (entry.isDirectory()) {
                         file.mkdirs()
                     } else {
@@ -1175,14 +1176,14 @@ class FileMan {
 
 
     static void startLogPath(String title, String sourcePath){
-//        println "${title}"
-        println " - Source Path: ${sourcePath}"
+//        logger.debug "${title}"
+        logger.debug " - Source Path: ${sourcePath}"
     }
 
     static void startLogPath(String title, String sourcePath, String destPath){
-//        println "${title}"
-        println " - Source Path: ${sourcePath}"
-        println " -   Dest Path: ${destPath}\n"
+//        logger.debug "${title}"
+        logger.debug " - Source Path: ${sourcePath}"
+        logger.debug " -   Dest Path: ${destPath}\n"
     }
 
     static String getAutoDestPath(String sourcePath, String destPath, String extension){
@@ -1826,7 +1827,7 @@ class FileMan {
         //PRINT
         if (matchedList.size()){
             matchedList.each{
-                println "${it} \n => ${replacement}"
+                logger.debug "${it} \n => ${replacement}"
             }
         }
         //REPLACE
@@ -1848,11 +1849,11 @@ class FileMan {
         String patternToGetProperty = "^\\s*" + targetPattern + "\\s*=.*\$"
         Matcher matchedList = Pattern.compile(patternToGetProperty, Pattern.MULTILINE).matcher(content)
         replacement = getRightReplacement("${target}=${replacement}")
-//        println "${matchedList.size()} ${replacement}"
+//        logger.debug "${matchedList.size()} ${replacement}"
         //PRINT
         if (matchedList.size()){
             matchedList.each{
-                println "${it} \n => ${replacement}"
+                logger.debug "${it} \n => ${replacement}"
             }
         }
         //REPLACE
