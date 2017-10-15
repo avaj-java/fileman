@@ -340,12 +340,18 @@ class FileMan {
     /*************************
      * Check
      *************************/
+    static boolean checkSourceFiles(String sourcePath, List filePathList){
+        if (!filePathList)
+            throw new IOException("Does not exist Source File, [ ${sourcePath} ]")
+    }
+
+
     static boolean checkPath(String sourcePath, String destPath){
         //Check Source Path
         if (!sourcePath)
             throw new IOException('No Source Path, Please Set Source Path.')
         if (!sourcePath.contains('*') && !new File(sourcePath).exists())
-            throw new IOException("Does not exist Source Path, ${sourcePath}")
+            throw new IOException("Does not exist Source Path, [ ${sourcePath} ]")
         if (isRootPath(sourcePath))
             throw new IOException('Source Path naver be seted rootPath on FileSystem.')
         //Check Dest Path
@@ -535,20 +541,20 @@ class FileMan {
     }
 
     static boolean copy(String sourcePath, String destPath, FileSetup opt){
-        //Check Path Parameter
+        //- Check Path Parameter
         sourcePath = getFullPath(sourcePath)
         destPath = getFullPath(destPath)
         checkPath(sourcePath, destPath)
-        //Make Entry
+        //- Check Source
         List entryList = genEntryList(sourcePath)
+        checkSourceFiles(sourcePath, entryList)
         String sourceRootPath = new File(sourcePath).getParentFile().getPath()
         String destRootPath = getLastDirectoryPath(destPath)
-        //Check Dest
+        //- Check Dest
         checkDir(destPath, opt.modeAutoMkdir)
         checkFiles(destPath, entryList, opt.modeAutoOverWrite)
-        //Log
+        //- Copy File to Dest
         startLogPath('COPY', sourcePath, destPath)
-        //Copy File to Dest
         if (isFile(destPath)){
             File sourceFile = new File(sourcePath)
             File destFile = new File(destPath)
@@ -721,22 +727,22 @@ class FileMan {
     }
 
     static boolean zip(String sourcePath, String destPath, FileSetup opt){
-        //Auto DestPath
+        //- Auto DestPath
         destPath = getAutoDestPath(sourcePath, destPath, 'zip')
-        //Check Path Parameter
+        //- Check Path Parameter
         sourcePath = getFullPath(sourcePath)
         destPath = getFullPath(destPath)
         checkPath(sourcePath, destPath)
-        //Make Entry
+        //- Check Source
         List entryList = genEntryList(sourcePath)
+        checkSourceFiles(sourcePath, entryList)
         String sourceRootPath = new File(sourcePath).getParentFile().getPath()
         String destRootPath = getLastDirectoryPath(destPath)
-        //Check Dest
+        //- Check Dest
         checkDir(destPath, opt.modeAutoMkdir)
         checkFile(destPath, opt.modeAutoOverWrite)
-        //Log
+        //- Zip Files to Dest
         startLogPath('ZIP', sourcePath, destPath)
-        //Zip Files to Dest
         return zip(entryList, sourceRootPath, destPath)
     }
 
@@ -796,22 +802,22 @@ class FileMan {
     }
 
     static boolean jar(String sourcePath, String destPath, FileSetup opt) throws IOException{
-        //Auto DestPath
+        //- Auto DestPath
         destPath = getAutoDestPath(sourcePath, destPath, 'jar')
-        //Check Path Parameter
+        //- Check Path Parameter
         sourcePath = getFullPath(sourcePath)
         destPath = getFullPath(destPath)
         checkPath(sourcePath, destPath)
-        //Make Entry
+        //- Check Source
         List entryList = genEntryList(sourcePath)
+        checkSourceFiles(sourcePath, entryList)
         String sourceRootPath = new File(sourcePath).getParentFile().getPath()
         String destRootPath = getLastDirectoryPath(destPath)
-        //Check Dest
+        //- Check Dest
         checkDir(destPath, opt.modeAutoMkdir)
         checkFile(destPath, opt.modeAutoOverWrite)
-        //Log
+        //- Jar Files to Dest
         startLogPath('JAR', sourcePath, destPath)
-        //Jar Files to Dest
         return jar(entryList, sourceRootPath, destPath)
     }
 
@@ -875,22 +881,22 @@ class FileMan {
     }
 
     static boolean tar(String sourcePath, String destPath, FileSetup opt) throws IOException{
-        //Auto DestPath
+        //- Auto DestPath
         destPath = getAutoDestPath(sourcePath, destPath, 'tar')
-        //Check Path Parameter
+        //- Check Path Parameter
         sourcePath = getFullPath(sourcePath)
         destPath = getFullPath(destPath)
         checkPath(sourcePath, destPath)
-        //Make Entry
+        //- Check Source
         List entryList = genEntryList(sourcePath)
+        checkSourceFiles(sourcePath, entryList)
         String sourceRootPath = new File(sourcePath).getParentFile().getPath()
         String destRootPath = getLastDirectoryPath(destPath)
-        //Check Dest
+        //- Check Dest
         checkDir(destPath, opt.modeAutoMkdir)
         checkFile(destPath, opt.modeAutoOverWrite)
-        //Log
+        //- Tar Files to Dest
         startLogPath('TAR', sourcePath, destPath)
-        //Tar Files to Dest
         return tar(entryList, sourceRootPath, destPath)
     }
 
@@ -989,21 +995,21 @@ class FileMan {
     }
 
     static boolean untar(String sourcePath, String destPath, FileSetup opt){
-        //Check Path Parameter
+        //- Check Path Parameter
         sourcePath = getFullPath(sourcePath)
         destPath = getFullPath(destPath)
         checkPath(sourcePath, destPath)
-        //Make Entry
+        //- Check Source
         List<String> filePathList = getSubFilePathList(sourcePath)
+        checkSourceFiles(sourcePath, filePathList)
         List<String> entryList = genEntryListFromTarFile(sourcePath)
         String sourceRootPath = new File(sourcePath).getParentFile().getPath()
         String destRootPath = getLastDirectoryPath(destPath)
-        //Check Dest
+        //- Check Dest
         checkDir(destPath, opt.modeAutoMkdir)
         checkFiles(destPath, entryList, opt.modeAutoOverWrite)
-        //Log
+        //- Tar File To Dest
         startLogPath('UNTAR', sourcePath, destPath)
-        //Tar File To Dest
         filePathList.each{ String sourceFilePath ->
             byte[] buffer = new byte[BUFFER]
             try{
@@ -1057,21 +1063,21 @@ class FileMan {
     }
 
     static boolean unzip(String sourcePath, String destPath, FileSetup opt){
-        //Check Path Parameter
+        //- Check Path Parameter
         sourcePath = getFullPath(sourcePath)
         destPath = getFullPath(destPath)
         checkPath(sourcePath, destPath)
-        //Make Entry
+        //- Check Source
         List<String> filePathList = getSubFilePathList(sourcePath)
+        checkSourceFiles(sourcePath, filePathList)
         List<String> entryList = genEntryListFromZipFile(sourcePath)
         String sourceRootPath = new File(sourcePath).getParentFile().getPath()
         String destRootPath = getLastDirectoryPath(destPath)
-        //Check Dest
+        //- Check Dest
         checkDir(destPath, opt.modeAutoMkdir)
         checkFiles(destPath, entryList, opt.modeAutoOverWrite)
-        //Log
+        //- Zip File To Dest
         startLogPath('UNZIP', sourcePath, destPath)
-        //Zip File To Dest
         filePathList.each{ String sourceFilePath ->
             byte[] buffer = new byte[BUFFER]
             try{
@@ -1122,21 +1128,21 @@ class FileMan {
     }
 
     static boolean unjar(String sourcePath, String destPath, FileSetup opt){
-        //Check Path Parameter
+        //- Check Path Parameter
         sourcePath = getFullPath(sourcePath)
         destPath = getFullPath(destPath)
         checkPath(sourcePath, destPath)
-        //Make Entry
+        //- Check Source
         List<String> filePathList = getSubFilePathList(sourcePath)
+        checkSourceFiles(sourcePath, filePathList)
         List<String> entryList = genEntryListFromJarFile(sourcePath)
         String sourceRootPath = new File(sourcePath).getParentFile().getPath()
         String destRootPath = getLastDirectoryPath(destPath)
-        //Check Dest
+        //- Check Dest
         checkDir(destPath, opt.modeAutoMkdir)
         checkFiles(destPath, entryList, opt.modeAutoOverWrite)
-        //Log
+        //- Jar File To Dest
         startLogPath('UNJAR', sourcePath, destPath)
-        //Jar File To Dest
         filePathList.each{ String sourceFilePath ->
             byte[] buffer = new byte[BUFFER]
             try{
@@ -1536,9 +1542,12 @@ class FileMan {
 
 
     
-    static boolean isMatchedPath(String onePath, rangePath){
-        String regexpStr = rangePath.replaceAll(/[\/\\]+/, '/').replace('*',"[^\\/\\\\]*")
-                                    .replace('(', '\\(').replace(')', '\\)').replace('.', '\\.').replace('$', '\\$')
+    static boolean isMatchedPath(String onePath, String rangePath){
+        String regexpStr = rangePath.replaceAll(/[\/\\]+/, '/')
+                                    .replace('(', '\\(').replace(')', '\\)')
+                                    .replace('[', '\\[').replace(']', '\\]')
+                                    .replace('.', '\\.').replace('$', '\\$')
+                                    .replace('*',"[^\\/\\\\]*")
         return onePath.replace('\\', '/').matches(regexpStr)
     }
 
