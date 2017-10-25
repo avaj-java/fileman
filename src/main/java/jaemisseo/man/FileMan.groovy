@@ -127,7 +127,6 @@ class FileMan {
             br.close()
 
         } catch (Exception ex) {
-            ex.printStackTrace()
             throw ex
         }
 
@@ -370,17 +369,17 @@ class FileMan {
         if (modeAutoMkdir){
             autoMkdirs(baseDir.path)
             if (!baseDir.exists())
-                throw new Exception("\n < Failed to CREATE Directory > Directory To Save File Could Not be Created", new Throwable("You Need To Check Permission Check And... Some... "))
+                throw new Exception("< Failed to CREATE Directory > Directory To Save File Could Not be Created", new Throwable("You Need To Check Permission Check And... Some... "))
         }else{
             if (!baseDir.exists())
-                throw new Exception("\n < Failed to WRITE File> No Directory To Save File ", new Throwable("Check Please."))
+                throw new Exception("< Failed to WRITE File> No Directory To Save File ", new Throwable("Check Please."))
         }
         return true
     }
 
     static boolean checkFile(String path){
         if (new File(path).exists())
-            throw new Exception("\n < Failed to WRITE File > File Already Exists. ${path}", new Throwable("Check Please. ${path}"))
+            throw new Exception("< Failed to WRITE File > File Already Exists. ${path}", new Throwable("Check Please. ${path}"))
         return true
     }
 
@@ -522,7 +521,7 @@ class FileMan {
             logger.debug(" - Complete - Create ${file.path} \n")
         }catch(Exception e){
             logger.error(" - Failed - To Create ${file.path} \n")
-            throw new Exception(" < Failed to WRITE File >", new Throwable("You Need To Check Permission Check And... Some... "))
+            throw new Exception("< Failed to WRITE File >", new Throwable("You Need To Check Permission Check And... Some... "))
         }
         return true
     }
@@ -583,7 +582,6 @@ class FileMan {
                 destChannel.transferFrom(sourceChannel, 0, sourceChannel.size())
                 logger.debug "Copied: ${destFile.path}"
             }catch (Exception e){
-                e.printStackTrace()
                 throw e
             }finally{
                 if (sourceChannel)
@@ -1894,7 +1892,7 @@ class FileMan {
     }
 
     static String getFullPath(File file){
-        return getFullPath(nowPath, file.path)
+        return getFullPath(nowPath, file?.path)
     }
 
     static String getFullPath(String nowPath, String relativePath){
