@@ -341,7 +341,7 @@ class FileMan {
      *************************/
     static boolean checkSourceFiles(String sourcePath, List filePathList){
         if (!filePathList) {
-            logger.error("Does not exist Source File. [ ${sourcePath} ]")
+            logger.warn("Does not exist Source File. [ ${sourcePath} ]")
 //            throw new IOException("Does not exist Source File, [ ${sourcePath} ]")
         }
     }
