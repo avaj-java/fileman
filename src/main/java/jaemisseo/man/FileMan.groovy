@@ -1915,7 +1915,7 @@ class FileMan {
                 nowPath = "${nowPath}/${next}"
             }
         }
-        return new File(nowPath).path
+        return new File(nowPath).path?.replaceAll(/[\/\\]+/, '/')
     }
 
 
