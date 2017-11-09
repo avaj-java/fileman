@@ -351,8 +351,8 @@ class FileMan {
         //Check Source Path
         if (!sourcePath)
             throw new IOException('No Source Path, Please Set Source Path.')
-        if (!sourcePath.contains('*') && !new File(sourcePath).exists())
-            throw new IOException("Does not exist Source Path, [ ${sourcePath} ]")
+//        if (!sourcePath.contains('*') && !new File(sourcePath).exists())
+//            throw new IOException("Does not exist Source Path, [ ${sourcePath} ]")
         if (isRootPath(sourcePath))
             throw new IOException('Source Path naver be seted rootPath on FileSystem.')
         //Check Dest Path
