@@ -237,7 +237,46 @@ class FileMan {
      *
      ***************
      ***************/
+    /*************************
+     * CHMOD
+     *************************/
+    static boolean chmod(File file, String chmodString){
+        if (chmodString){
+            if (chmodString.length() > 3)
+                chmodString.substring(chmodString.length()-3, chmodString.length())
+            else if (chmodString.length() < 3)
+                chmodString += ((3 - chmodString.length()).collect{'4'}.join(''))
+        }else{
+            return false
+        }
 
+        int ownerNumber = chmodString.substring(0,1).toInteger()
+        int groupNumber = chmodString.substring(1,2).toInteger()
+        int otherNumber = chmodString.substring(2,3).toInteger()
+
+        //- Clear chmod
+        clearChmod(file)
+        //- Group, Other
+        chmod(file, groupNumber, false)
+        //- Owner
+        chmod(file, ownerNumber, true)
+    }
+
+    static boolean chmod(File file, int number, isOwnerOnly){
+        if ([1,3,5,7].contains(number))
+            file.setExecutable(true, isOwnerOnly)
+        if ([2,3,6,7].contains(number))
+            file.setWritable(true, isOwnerOnly)
+        if ([4,5,6,7].contains(number))
+            file.setReadable(true, isOwnerOnly)
+    }
+
+    static void clearChmod(File file){
+        file.setReadable(false, false)
+        file.setWritable(false, false)
+        file.setExecutable(false, false)
+    }
+    
     /*************************
      * MKDIRS
      *************************/
@@ -246,9 +285,6 @@ class FileMan {
         File dir = new File(path)
         if (!dir.exists()){
             isOk = dir.mkdirs()
-            dir.setReadable(true, false)
-            dir.setExecutable(true, false)
-            dir.setWritable(true, false)
             logger.debug "Created Directory: ${dir.path}"
         }
         return isOk
@@ -518,6 +554,8 @@ class FileMan {
                 else
                     out.print ( fileContentLineList.join(opt.lineBreak) + ((opt.lastLineBreak)?:'') )
             }
+            if (opt.chmod)
+                chmod(file, opt.chmod)
             logger.debug(" - Complete - Create ${file.path} \n")
         }catch(Exception e){
             logger.error(" - Failed - To Create ${file.path} \n")
