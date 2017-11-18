@@ -1848,13 +1848,13 @@ class FileMan {
     /*************************
      * replace property
      *************************/
-    FileMan replaceProperty(Map replacePropertyMap){
+    FileMan replaceProperties(Map replacePropertyMap){
         replacePropertyMap.each{ String target, String replacement ->
-            replaceProperty(target, replacement)
+            replaceProperties(target, replacement)
         }
         return this
     }
-    FileMan replaceProperty(String target, String replacement){
+    FileMan replaceProperties(String target, String replacement){
         String targetPattern = target.replace('.','[.]').replace('$','\\$')
         String patternToGetProperty = "^\\s*" + targetPattern + "\\s*=.*\$"
         Matcher matchedList = Pattern.compile(patternToGetProperty, Pattern.MULTILINE).matcher(content)
@@ -1868,6 +1868,87 @@ class FileMan {
         }
         //REPLACE
         content = matchedList.replaceAll(replacement)
+        return this
+    }
+
+    /*************************
+     * replace YAML property
+     *************************/
+    FileMan replaceYaml(Map replacePropertyMap){
+        replacePropertyMap.each{ String target, String replacement ->
+            replaceYaml(target, replacement)
+        }
+        return this
+    }
+    FileMan replaceYaml(String targetPropertyName, String replacement){
+        List propertyByDepthList = targetPropertyName.split('[.]').toList()
+        int depthIndex = propertyByDepthList.size()
+
+        List nowIndentByDepthList = []
+        List nowPropertyByDepthList = []
+        List<String> newLineList = []
+        List<String> lineList = []
+        String nowPrefix
+        String nowSurfix
+        int beforeIndent = 0
+
+        content.eachLine{ lineList << it }
+        for (int i=0; i<lineList.size(); i++){
+            String thisLine = lineList[i]
+            String newLine = thisLine
+            String leftTrimLine = thisLine.replaceAll("^\\s+", "")
+            String nowPropertyName
+            String nowValue
+            int nowIndent = thisLine.length() - leftTrimLine.length()
+
+            //Analysis PropertyName
+            int seperatorColonIndex = leftTrimLine.indexOf(':')
+            if (!leftTrimLine.startsWith('#') && seperatorColonIndex != -1) {
+                String propertyItem = leftTrimLine.substring(0, seperatorColonIndex)
+                nowValue = leftTrimLine.substring(seperatorColonIndex+1)
+                int checkExistIndentIndex = nowIndentByDepthList ? nowIndentByDepthList.indexOf(nowIndent) : -1
+
+                //First
+                if (nowIndent == 0) {
+                    nowPropertyByDepthList = [propertyItem]
+                    nowIndentByDepthList = [nowIndent]
+
+                //sameDepth
+                }else if (beforeIndent == nowIndent) {
+                    nowPropertyByDepthList[(nowPropertyByDepthList.size() - 1)] = propertyItem
+                    nowIndentByDepthList[(nowPropertyByDepthList.size() - 1)] = nowIndent
+
+                //plusDepth
+                }else if (beforeIndent < nowIndent) {
+                    nowPropertyByDepthList << propertyItem
+                    nowIndentByDepthList << nowIndent
+
+                //minusDepth
+                }else if (checkExistIndentIndex != -1){
+                    nowPropertyByDepthList = nowPropertyByDepthList[0..checkExistIndentIndex]
+                    nowPropertyByDepthList[(nowPropertyByDepthList.size()-1)] = propertyItem
+                    nowIndentByDepthList = nowIndentByDepthList[0..checkExistIndentIndex]
+                    nowIndentByDepthList[(nowIndentByDepthList.size()-1)] = nowIndent
+                }
+
+                //Make New Line
+                nowPropertyName = nowPropertyByDepthList.join('.')
+                if (nowPropertyName == targetPropertyName){
+                    String newIndent = (nowIndent == 0) ? "" : (0..(nowIndent-1)).collect{' '}.join('')
+                    newLine = "${newIndent}${propertyItem}: ${replacement}"
+
+                    logger.debug "${thisLine} \n => ${newLine}"
+                }
+
+                //Save Before
+                beforeIndent = nowIndent
+            }
+
+            //Collect New Lines
+            newLineList << newLine
+        }
+        
+        content = newLineList.join(System.getProperty("line.separator"))
         return this
     }
 
