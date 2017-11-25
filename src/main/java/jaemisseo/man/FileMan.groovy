@@ -1227,7 +1227,7 @@ class FileMan {
     static void startLogPath(String title, String sourcePath, String destPath){
 //        logger.debug "${title}"
         logger.debug " - Source Path: ${sourcePath}"
-        logger.debug " -   Dest Path: ${destPath}\n"
+        logger.debug " -   Dest Path: ${destPath}"
     }
 
     static String getAutoDestPath(String sourcePath, String destPath, String extension){
@@ -1853,6 +1853,8 @@ class FileMan {
      * replace
      *************************/
     FileMan replace(Map replaceMap){
+        if (replaceMap)
+            logger.debug "Replacement) ${replaceMap.toMapString()}"
         replaceMap.each{ String target, String replacement ->
             replace(target, replacement)
         }
@@ -1860,13 +1862,10 @@ class FileMan {
     }
     FileMan replace(String target, String replacement){
         replacement = getRightReplacement(replacement)
-//        //PRINT
-//        if (matchedList.size()){
-//            matchedList.each{
-//                println "${it} => ${replacement}"
-//            }
-//        }
-//        //REPLACE
+        //LOG
+        logger.debug "from) ${target}"
+        logger.debug "  to) ${replacement}"
+        //REPLACE
         content = content.replaceAll(target, replacement)
         return this
     }
@@ -1875,6 +1874,8 @@ class FileMan {
      * replace line
      *************************/
     FileMan replaceLine(Map replaceLineMap){
+        if (replaceLineMap)
+            logger.debug "Line Replacement) ${replaceLineMap.toMapString()}"
         replaceLineMap.each{ String target, String replacement ->
             replaceLine(target, replacement)
         }
@@ -1885,10 +1886,11 @@ class FileMan {
         String patternToGetProperty = ".*" + targetPattern + ".*"
         Matcher matchedList = Pattern.compile(patternToGetProperty, Pattern.MULTILINE).matcher(content)
         replacement = getRightReplacement(replacement)
-        //PRINT
+        //LOG
         if (matchedList.size()){
-            matchedList.each{
-                logger.debug "${it} \n => ${replacement}"
+            matchedList.eachWithIndex{ String from, int i ->
+                logger.debug "from) ${from}"
+                logger.debug "  to) ${replacement}"
             }
         }
         //REPLACE
@@ -1900,6 +1902,8 @@ class FileMan {
      * replace property
      *************************/
     FileMan replaceProperties(Map replacePropertyMap){
+        if (replacePropertyMap)
+            logger.debug "Property Replacement: ${replacePropertyMap.toMapString()}"
         replacePropertyMap.each{ String target, String replacement ->
             replaceProperties(target, replacement)
         }
@@ -1910,11 +1914,11 @@ class FileMan {
         String patternToGetProperty = "^\\s*" + targetPattern + "\\s*=.*\$"
         Matcher matchedList = Pattern.compile(patternToGetProperty, Pattern.MULTILINE).matcher(content)
         replacement = getRightReplacement("${target}=${replacement}")
-//        logger.debug "${matchedList.size()} ${replacement}"
-        //PRINT
+        //LOG
         if (matchedList.size()){
-            matchedList.each{
-                logger.debug "${it} \n => ${replacement}"
+            matchedList.eachWithIndex{ String from, int i ->
+                logger.debug "from) ${from}"
+                logger.debug "  to) ${replacement}"
             }
         }
         //REPLACE
@@ -1926,6 +1930,8 @@ class FileMan {
      * replace YAML property
      *************************/
     FileMan replaceYaml(Map replacePropertyMap){
+        if (replacePropertyMap)
+            logger.debug "Yaml Property Replacement: ${replacePropertyMap.toMapString()}"
         replacePropertyMap.each{ String target, String replacement ->
             replaceYaml(target, replacement)
         }
@@ -1987,8 +1993,9 @@ class FileMan {
                 if (nowPropertyName == targetPropertyName){
                     String newIndent = (nowIndent == 0) ? "" : (0..(nowIndent-1)).collect{' '}.join('')
                     newLine = "${newIndent}${propertyItem}: ${replacement}"
-
-                    logger.debug "${thisLine} \n => ${newLine}"
+                    //Log
+                    logger.debug "from) ${thisLine}"
+                    logger.debug "  to) ${newLine}"
                 }
 
                 //Save Before
