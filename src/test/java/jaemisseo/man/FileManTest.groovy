@@ -39,6 +39,113 @@ class FileManTest {
 
     @Test
     @Ignore
+    void getSubFilePathList(){
+        List fileSubPathList13 = FileMan.getSubFilePathList('/')
+        List fileSubPathList14 = FileMan.getSubFilePathList('/*')
+
+        List fileSubPathList = FileMan.getSubFilePathList('d:')
+        List fileSubPathList4 = FileMan.getSubFilePathList('d:/')
+        List fileSubPathList7 = FileMan.getSubFilePathList('d:/*')
+        List fileSubPathList10 = FileMan.getSubFilePathList('d:/*.yml')
+
+        List fileSubPathList2 = FileMan.getSubFilePathList('d:/dev_by_sj')
+        List fileSubPathList5 = FileMan.getSubFilePathList('d:/dev_by_sj/')
+        List fileSubPathList8 = FileMan.getSubFilePathList('d:/dev_by_sj/*')
+        List fileSubPathList11 = FileMan.getSubFilePathList('d:/dev_by_sj/t*')
+
+        List fileSubPathList3 = FileMan.getSubFilePathList('d:/dev_by_sj/dmps')
+        List fileSubPathList6 = FileMan.getSubFilePathList('d:/dev_by_sj/dmps/')
+        List fileSubPathList9 = FileMan.getSubFilePathList('d:/dev_by_sj/dmps/*')
+        List fileSubPathList12 = FileMan.getSubFilePathList('d:/dev_by_sj/dmps/u*')
+        println 1
+    }
+
+    @Test
+    @Ignore
+    void isMatchedPath(){
+//        List fileEntryPathList = FileMan.genEntryList('d:/')
+        List fileEntryPathList2 = FileMan.genEntryList('d:/dow*')
+        List fileEntryPathList3 = FileMan.genEntryList('d:/dev_by_sj/dmps')
+        List fileEntryPathList4 = FileMan.genEntryList('d:/dev_by_sj/dmps/')
+        List fileEntryPathList5 = FileMan.genEntryList('d:/dev_by_sj/dmps/*')
+        println 1
+    }
+
+
+
+    @Test
+    void isMatchingFile(){
+        List<String> filePathList = [
+            'c:/test_on_cdrive/not_real_path/just-test',
+            'c:/test_on_cdrive/not_real_path/just-test/dd',
+            'c:/test_on_cdrive/not_real_path/just-test/hello.yml',
+            'c:/test_on_cdrive/not_real_path/just-test/bye.yml',
+            'd:/test/not_real_path/just-test',
+            'd:/test/not_real_path/just-test/dd',
+            'd:/test/not_real_path/just-test/hello.yml',
+            'd:/test/not_real_path/just-test/bye.yml',
+            'd:/test/not_real_path/just-test/installer-maker.yml',
+            'd:/test/not_real_path/just-test/installer.yml',
+            'd:/test/not_real_path/just-test/build.sh',
+            'd:/test/not_real_path/just-test/build.bat',
+            'd:/test/not_real_path2/just-test/.git',
+            'd:/test/not_real_path2/just-test/.git/git.config',
+            'd:/test/not_real_path2/just-test/.gitignore',
+            'd:/test/not_real_path2/just-test/build',
+            'd:/test/not_real_path2/just-test/build/installer_myproject',
+            'd:/test/not_real_path2/just-test/build/installer_myproject/bin',
+            'd:/test/not_real_path2/just-test/build/installer_myproject/bin/install',
+            'd:/test/not_real_path2/just-test/build/installer_myproject/bin/install.bat',
+            'd:/test/not_real_path2/just-test/build/installer_myproject/bin/macgyver',
+            'd:/test/not_real_path2/just-test/build/installer_myproject/bin/macgyver.bat',
+            'd:/test/not_real_path2/just-test/build/installer_myproject/log',
+            'd:/test/not_real_path2/just-test/build/installer_myproject/lib',
+        ]
+        assert isMachingData(filePathList, 'd:/t*t/not_real_path/just-test', [
+            'd:/test/not_real_path/just-test'
+        ])
+
+        assert isMachingData(filePathList, 'd:/*/not_real_path/just-test', [
+                'd:/test/not_real_path/just-test'
+        ])
+
+        assert isMachingData(filePathList, 'd:/*/n*a*h/just-test/*.yml', [
+                'd:/test/not_real_path/just-test/hello.yml',
+                'd:/test/not_real_path/just-test/bye.yml',
+                'd:/test/not_real_path/just-test/installer-maker.yml',
+                'd:/test/not_real_path/just-test/installer.yml'
+        ])
+
+        assert isMachingData(filePathList, 'd:/**/just-test', [
+                'd:/test/not_real_path/just-test'
+        ])
+
+        assert isMachingData(filePathList, 'd:/**', filePathList.findAll{ it.startsWith('d:') })
+
+        assert isMachingData(filePathList, 'c:/**', filePathList.findAll{ it.startsWith('c:') })
+    }
+
+    private boolean isMachingData(List<String> dataList, String range, List<String> assertDataList){
+        boolean isSameSize = true
+        boolean containsAll = true
+        List<String> filteredDataList = dataList.findAll{ FileMan.isMatchedPath(it, range) }
+        //Log
+        println "${range} "
+        println "  => ${filteredDataList}"
+        //Check
+        if (filteredDataList){
+            isSameSize = (assertDataList.size() == filteredDataList.size())
+            containsAll = assertDataList.every{ filteredDataList.contains(it) }
+        }else{
+            isSameSize = (assertDataList.size() == 0)
+        }
+        return isSameSize && containsAll
+    }
+
+
+
+    @Test
+    @Ignore
     void startsWithRootPath(){
         List correctList = ['/d', '/d/', '/d////', '/d////\\\\', '/', '/c/', 'c:/', 'c:\\']
         List wrongList = ['c', 'd', 'd/', '', 'c/', 'p:\\', 'gh:\\', 'asdfasf', 'ccc', 'c:c']

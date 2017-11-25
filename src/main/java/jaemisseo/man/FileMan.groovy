@@ -1248,24 +1248,38 @@ class FileMan {
      * EntryList
      *************************/
     static List<String> genEntryList(String sourcePath){
+        sourcePath = new File(sourcePath).getPath()
         List<String> newEntryList = []
-        String rootPath = new File(sourcePath).getParentFile().getPath()
+        //- Get Entry's Root Path Length
+        int entryRootStartIndex = 0
+        String rootPath = ''
+        String ParentPath = ''
+        if (!isRootPath(sourcePath)){
+            rootPath = new File(sourcePath).getParentFile().getPath()
+            ParentPath = new File(sourcePath).getParentFile().getPath()
+            if (isRootPath(ParentPath)){
+                entryRootStartIndex = rootPath.length()
+            }else{
+                entryRootStartIndex = rootPath.length() +1
+            }
+        }
+        //- Get Entries
         List<String> filePathList = getSubFilePathList(sourcePath)
         filePathList.each{ String onePath ->
             if (isMatchedPath(onePath, sourcePath))
-                newEntryList = genEntryList(newEntryList, rootPath, onePath)
+                newEntryList = genEntryList(newEntryList, entryRootStartIndex, onePath)
         }
         return newEntryList
     }
 
-    static List<String> genEntryList(List<String> entryList, String rootPath, String filePath){
+    static List<String> genEntryList(List<String> entryList, int entryRootStartIndex, String filePath){
         File node = new File(filePath)
-        String oneFilePath = node.getPath().substring(rootPath.length()+1, filePath.length())
+        String oneFilePath = node.getPath().substring(entryRootStartIndex, filePath.length())
         if(node.isDirectory()){
             String[] subNote = node.list()
             entryList.add(oneFilePath + System.getProperty('file.separator'))
             for (String filename : subNote){
-                genEntryList(entryList, rootPath, new File(node, filename).getPath())
+                genEntryList(entryList, entryRootStartIndex, new File(node, filename).getPath())
             }
         }else{
             entryList.add(oneFilePath)
@@ -1586,6 +1600,7 @@ class FileMan {
                                     .replace('[', '\\[').replace(']', '\\]')
                                     .replace('.', '\\.').replace('$', '\\$')
                                     .replace('*',"[^\\/\\\\]*")
+                                    .replace('[^\\/\\\\]*[^\\/\\\\]*',"\\S*")
         return onePath.replace('\\', '/').matches(regexpStr)
     }
 
@@ -1597,55 +1612,53 @@ class FileMan {
         def filePathList = []
 
         //Root of FileSystem => 정확한 루트를 따진다. (Windows Drive...)
+        List<File> rootList = new File('/').listRoots()
+        boolean isWindows = (rootList && rootList.size() > 1)
         if (isRootPath(filePath)){
-            List<File> rootList = new File('/').listRoots()
-            //Maybe on Windows
-            if (rootList && rootList.size() > 1){
-                if (filePath.equals('/')){
-                    rootList.each{ File root ->
-                        String rootName = root.toString()
-                        rootName = rootName.contains('*') ? rootName : "${rootName}/*"
-                        filePathList.addAll(getSubFilePathList(rootName))
-                    }
+            /** Maybe on Windows **/
+            if (isWindows){
+                if (filePath == '/' || filePath == '\\'){
+                    filePathList = [new File('/').path]
                 }else{
                     String rootKeyString = filePath.replaceAll('\\W*', '')?.toUpperCase()
                     String rootName = rootList.find { it.toString().contains(rootKeyString) }
-                    if (rootName){
-                        rootName = rootName.contains('*') ? rootName : "${rootName}/*"
-                        filePathList = getSubFilePathList(rootName)
-                    }
+                    filePathList = rootName ? [new File(filePath).path] : []
                 }
 
-            //Maybe on Others(Unix & Linux)
+            /** Maybe on Others(Unix & Linux) **/
             }else{
-                filePath = filePath.contains('*') ? filePath : "${filePath}/*"
+                filePath = filePath.contains('*') ? filePath : "${filePath}"
             }
         }else{
-            //
-            String fullPath = getFullPath(filePath)
-            File file = new File(fullPath)
-            // check files (new)
-            if (!fullPath){
-            }else if (fullPath.contains('*')){
-                new File(fullPath).getParentFile().listFiles().each{ File f ->
-                    if (isMatchedPath(f.path, fullPath))
-                        filePathList << f.path
+            if (isWindows && filePath == '/*'){
+                rootList.each{ File root ->
+                    String rootName = root.toString()
+                    filePathList << rootName
                 }
             }else{
-                filePathList << new File(fullPath).path
-            }
-            // check extension
-            if (extension){
-                filePathList = filePathList.findAll{
-                    int lastDotIdx = it.lastIndexOf('.')
-                    String itExtension = it.substring(lastDotIdx+1).toUpperCase()
-                    String acceptExtension = extension.toUpperCase()
-                    return ( itExtension.equals(acceptExtension) )
+                String fullPath = getFullPath(filePath)
+                File file = new File(fullPath)
+                // check files (new)
+                if (!fullPath){
+                }else if (fullPath.contains('*')){
+                    new File(fullPath).getParentFile().listFiles().each{ File f ->
+                        if (isMatchedPath(f.path, fullPath))
+                            filePathList << f.path
+                    }
+                }else{
+                    filePathList << new File(fullPath).path
+                }
+                // check extension
+                if (extension){
+                    filePathList = filePathList.findAll{
+                        int lastDotIdx = it.lastIndexOf('.')
+                        String itExtension = it.substring(lastDotIdx+1).toUpperCase()
+                        String acceptExtension = extension.toUpperCase()
+                        return ( itExtension.equals(acceptExtension) )
+                    }
                 }
             }
         }
-
-
         return filePathList
     }
 
