@@ -379,7 +379,9 @@ class FileMan {
         if (!filePathList) {
             logger.warn("Does not exist Source File. [ ${sourcePath} ]")
 //            throw new IOException("Does not exist Source File, [ ${sourcePath} ]")
+            return false
         }
+        return true
     }
 
 
@@ -585,10 +587,8 @@ class FileMan {
         destPath = getFullPath(destPath)
         checkPath(sourcePath, destPath)
         //- Check Source
-        List entryList = genEntryList(sourcePath)
+        List entryList = getEntryList(sourcePath)
         checkSourceFiles(sourcePath, entryList)
-        String sourceRootPath = new File(sourcePath).getParentFile().getPath()
-        String destRootPath = getLastDirectoryPath(destPath)
         //- Check Dest
         checkDir(destPath, opt.modeAutoMkdir)
         checkFiles(destPath, entryList, opt.modeAutoOverWrite)
@@ -599,6 +599,8 @@ class FileMan {
             File destFile = new File(destPath)
             copy(sourceFile, destFile)
         }else{
+            String sourceRootPath = new File(sourcePath).getParentFile().getPath()
+            String destRootPath = getLastDirectoryPath(destPath)
             for (String fileRelPath : entryList){
                 File sourceFile = new File(sourceRootPath, fileRelPath)
                 File destFile = new File(destRootPath, fileRelPath)
@@ -653,7 +655,7 @@ class FileMan {
         destPath = getFullPath(destPath)
         checkPath(sourcePath, destPath)
         //Make Entry
-        List entryList = genEntryList(sourcePath)
+        List entryList = getEntryList(sourcePath)
         String sourceRootPath = new File(sourcePath).getParentFile().getPath()
         String destRootPath = getLastDirectoryPath(destPath)
         //Check Dest
@@ -681,7 +683,7 @@ class FileMan {
         sourcePath = getFullPath(sourcePath)
         checkPath(sourcePath, 'dummy*')
         //Make Entry
-        List entryList = genEntryList(sourcePath)
+        List entryList = getEntryList(sourcePath)
         String sourceRootPath = new File(sourcePath).getParentFile().getPath()
         //Log
         startLogPath('DELETE', sourcePath)
@@ -772,7 +774,7 @@ class FileMan {
         destPath = getFullPath(destPath)
         checkPath(sourcePath, destPath)
         //- Check Source
-        List entryList = genEntryList(sourcePath)
+        List entryList = getEntryList(sourcePath)
         checkSourceFiles(sourcePath, entryList)
         String sourceRootPath = new File(sourcePath).getParentFile().getPath()
         String destRootPath = getLastDirectoryPath(destPath)
@@ -847,7 +849,7 @@ class FileMan {
         destPath = getFullPath(destPath)
         checkPath(sourcePath, destPath)
         //- Check Source
-        List entryList = genEntryList(sourcePath)
+        List entryList = getEntryList(sourcePath)
         checkSourceFiles(sourcePath, entryList)
         String sourceRootPath = new File(sourcePath).getParentFile().getPath()
         String destRootPath = getLastDirectoryPath(destPath)
@@ -926,7 +928,7 @@ class FileMan {
         destPath = getFullPath(destPath)
         checkPath(sourcePath, destPath)
         //- Check Source
-        List entryList = genEntryList(sourcePath)
+        List entryList = getEntryList(sourcePath)
         checkSourceFiles(sourcePath, entryList)
         String sourceRootPath = new File(sourcePath).getParentFile().getPath()
         String destRootPath = getLastDirectoryPath(destPath)
@@ -1247,9 +1249,9 @@ class FileMan {
     /*************************
      * EntryList
      *************************/
-    static List<String> genEntryList(String sourcePath){
-        sourcePath = new File(sourcePath).getPath()
+    static List<String> getEntryList(String sourcePath){
         List<String> newEntryList = []
+        sourcePath = new File(sourcePath).getPath()
         //- Get Entry's Root Path Length
         int entryRootStartIndex = 0
         String rootPath = ''
@@ -1267,19 +1269,19 @@ class FileMan {
         List<String> filePathList = getSubFilePathList(sourcePath)
         filePathList.each{ String onePath ->
             if (isMatchedPath(onePath, sourcePath))
-                newEntryList = genEntryList(newEntryList, entryRootStartIndex, onePath)
+                newEntryList = getEntryList(newEntryList, entryRootStartIndex, onePath)
         }
         return newEntryList
     }
 
-    static List<String> genEntryList(List<String> entryList, int entryRootStartIndex, String filePath){
+    static List<String> getEntryList(List<String> entryList, int entryRootStartIndex, String filePath){
         File node = new File(filePath)
         String oneFilePath = node.getPath().substring(entryRootStartIndex, filePath.length())
         if(node.isDirectory()){
             String[] subNote = node.list()
             entryList.add(oneFilePath + System.getProperty('file.separator'))
             for (String filename : subNote){
-                genEntryList(entryList, entryRootStartIndex, new File(node, filename).getPath())
+                getEntryList(entryList, entryRootStartIndex, new File(node, filename).getPath())
             }
         }else{
             entryList.add(oneFilePath)

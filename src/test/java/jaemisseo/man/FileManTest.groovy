@@ -63,11 +63,11 @@ class FileManTest {
     @Test
     @Ignore
     void isMatchedPath(){
-//        List fileEntryPathList = FileMan.genEntryList('d:/')
-        List fileEntryPathList2 = FileMan.genEntryList('d:/dow*')
-        List fileEntryPathList3 = FileMan.genEntryList('d:/dev_by_sj/dmps')
-        List fileEntryPathList4 = FileMan.genEntryList('d:/dev_by_sj/dmps/')
-        List fileEntryPathList5 = FileMan.genEntryList('d:/dev_by_sj/dmps/*')
+//        List fileEntryPathList = FileMan.getEntryList('d:/')
+        List fileEntryPathList2 = FileMan.getEntryList('d:/dow*')
+        List fileEntryPathList3 = FileMan.getEntryList('d:/dev_by_sj/dmps')
+        List fileEntryPathList4 = FileMan.getEntryList('d:/dev_by_sj/dmps/')
+        List fileEntryPathList5 = FileMan.getEntryList('d:/dev_by_sj/dmps/*')
         println 1
     }
 
