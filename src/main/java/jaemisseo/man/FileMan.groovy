@@ -792,7 +792,8 @@ class FileMan {
         ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(destPath))
         try{
             for (String file : entryList){
-                String path = sourceRootPath + File.separator + file
+                file = toSlash(file)
+                String path = sourceRootPath + '/' + file
                 logger.debug "Compressing: ${file}"
                 zos.putNextEntry(new ZipEntry(file))
                 if (new File(path).isFile()){
@@ -1597,7 +1598,7 @@ class FileMan {
 
     
     static boolean isMatchedPath(String onePath, String rangePath){
-        String regexpStr = rangePath.replaceAll(/[\/\\]+/, '/')
+        String regexpStr = toSlash(rangePath)
                                     .replace('(', '\\(').replace(')', '\\)')
                                     .replace('[', '\\[').replace(']', '\\]')
                                     .replace('.', '\\.').replace('$', '\\$')
@@ -2039,7 +2040,7 @@ class FileMan {
     static String getFullPath(String nowPath, String relativePath){
         if (!relativePath)
             return null
-        relativePath = relativePath.replaceAll(/[\/\\]+/, '/')
+        relativePath = toSlash(relativePath)
         if (startsWithRootPath(relativePath))
             return relativePath
         if (!nowPath || !relativePath)
@@ -2056,7 +2057,7 @@ class FileMan {
                 nowPath = "${nowPath}/${next}"
             }
         }
-        return new File(nowPath).path?.replaceAll(/[\/\\]+/, '/')
+        return toSlash(new File(nowPath).path)
     }
 
 
@@ -2183,6 +2184,10 @@ class FileMan {
             fileMapForSeperator[validKey] = dataList.findAll{ it[keyName] == validKey }
         }
         return fileMapForSeperator
+    }
+
+    static toSlash(String path){
+        return path?.replaceAll(/[\/\\]+/, '/')
     }
 
 }
