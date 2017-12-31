@@ -1532,7 +1532,7 @@ class FileMan {
 
     static List<File> findAllWithProgressBar(String rootPath, String searchFileName, def condition, Closure eachFoundFileClosure){
         List<File> newEntryList = []
-        List<File> filePathList = getSubFilePathList(rootPath)
+        List<File> filePathList = getSubFilePathList(rootPath+'/*')
         int barSize = 20
         int count = 0
 
@@ -2050,7 +2050,8 @@ class FileMan {
                 if (!isRootPath(nowPath))
                     nowPath = (new File(nowPath).isDirectory()) ? new File(nowPath).getParent() : new File(nowPath).getParentFile().getParent()
             }else if (next.equals('.')){
-                // ignore
+                if (!isRootPath(nowPath))
+                    nowPath = isFile(nowPath) ? new File(nowPath).getParent() : nowPath
             }else if (next.equals('~')){
                 nowPath = System.getProperty("user.home")
             }else{
@@ -2188,6 +2189,10 @@ class FileMan {
 
     static toSlash(String path){
         return path?.replaceAll(/[\/\\]+/, '/')
+    }
+
+    static toBlackslash(String path){
+        return path?.replaceAll(/[\/\\]+/, '\\')
     }
 
 }
