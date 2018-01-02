@@ -1533,6 +1533,10 @@ class FileMan {
     static List<File> findAllWithProgressBar(String rootPath, String searchFileName, def condition, Closure eachFoundFileClosure){
         List<File> newEntryList = []
         List<File> filePathList = getSubFilePathList(rootPath+'/*')
+
+        if (!filePathList)
+            throw new Exception("There are no Directories or Files [${rootPath}]")
+
         int barSize = 20
         int count = 0
 
@@ -1741,7 +1745,23 @@ class FileMan {
     }
 
     FileMan backup(String destPath){
-        return copy(destPath)
+        String originPath = destPath
+        int maxTryCount = 5
+        (0..maxTryCount).any{ int tryIndex ->
+            try{
+                if (tryIndex)
+                    destPath = "${originPath}_${String.valueOf(tryIndex)}"
+                copy(destPath)
+                return true
+            }catch (e){
+                if (0 <= tryIndex && tryIndex < maxTryCount)
+                    logger.debug("Try to backup one more... (Count: ${tryIndex +1})")
+                else if (tryIndex == maxTryCount)
+                    throw e
+                return false
+            }
+        }
+        return this
     }
 
 
