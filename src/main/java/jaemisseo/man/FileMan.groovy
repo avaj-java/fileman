@@ -41,7 +41,7 @@ class FileMan {
         nowPath = System.getProperty('user.dir')
     }
 
-    static final Logger logger = LoggerFactory.getLogger(FileMan.getClass());
+    static final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     boolean directoryAutoCreateUse = true
 
@@ -1532,7 +1532,14 @@ class FileMan {
 
     static List<File> findAllWithProgressBar(String rootPath, String searchFileName, def condition, Closure eachFoundFileClosure){
         List<File> newEntryList = []
-        List<File> filePathList = getSubFilePathList(rootPath+'/*')
+        List<File> filePathList
+
+        if (!rootPath)
+            rootPath = ''
+        filePathList = getSubFilePathList(rootPath+'/*')
+        logger.debug('=============== Checking before find files')
+        logger.trace('----- Root Files')
+        logger.debug(filePathList.toListString())
 
         if (!filePathList)
             throw new Exception("There are no Directories or Files [${rootPath}]")
