@@ -1912,7 +1912,10 @@ class FileMan {
         return this
     }
     FileMan replaceLine(String target, String replacement){
-        String targetPattern = target.replace('.','\\.').replace('$','\\$').replace('#','\\#')
+        String targetPattern = target
+                .replace('(', '\\(').replace(')', '\\)')
+                .replace('[', '\\[').replace(']', '\\]')
+                .replace('.','\\.').replace('$','\\$').replace('#','\\#')
         String patternToGetProperty = ".*" + targetPattern + ".*"
         Matcher matchedList = Pattern.compile(patternToGetProperty, Pattern.MULTILINE).matcher(content)
         replacement = getRightReplacement(replacement)
