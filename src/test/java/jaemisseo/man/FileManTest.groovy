@@ -1,5 +1,6 @@
 package jaemisseo.man
 
+import jaemisseo.man.bean.FileSetup
 import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
@@ -266,6 +267,12 @@ class FileManTest {
         String filePath = ''
         List<String> entryList = FileMan.genEntryListFromJarFile(filePath)
         println FileMan.checkFiles(destPath, entryList, false)
+    }
+
+    @Test
+    @Ignore
+    void testWrite(){
+        FileMan.write("c:/ddddd/testtesttest.test", "hihi Hello.", new FileSetup(modeAppendWrite: true))
     }
 
 }

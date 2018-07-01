@@ -548,17 +548,29 @@ class FileMan {
         //Check Dest
         String lastDirPath = newFile.getParentFile().getPath() //name not contains dot can be file on Here
         checkDir(lastDirPath, opt.modeAutoMkdir)
-        checkFile(destPath, opt.modeAutoOverWrite)
+        if (!opt.modeAppendWrite)
+            checkFile(destPath, opt.modeAutoOverWrite)
         //Write File to Dest
         File file = new File(destPath)
         try{
-            file.withWriter(opt.encoding){ out ->
-                // METHOD A. Auto LineBreak
-                if (!opt.lineBreak)
-                    fileContentLineList.each{ String oneLine -> out.println oneLine }
-                // METHOD B. Custom LineBreak
-                else
-                    out.print ( fileContentLineList.join(opt.lineBreak) + ((opt.lastLineBreak)?:'') )
+            if (opt.modeAppendWrite){
+                file.withWriterAppend(opt.encoding){ out ->
+                    // METHOD A. Auto LineBreak
+                    if (!opt.lineBreak)
+                        fileContentLineList.each{ String oneLine -> out.println oneLine }
+                    // METHOD B. Custom LineBreak
+                    else
+                        out.print ( fileContentLineList.join(opt.lineBreak) + ((opt.lastLineBreak)?:'') )
+                }
+            }else{
+                file.withWriter(opt.encoding){ out ->
+                    // METHOD A. Auto LineBreak
+                    if (!opt.lineBreak)
+                        fileContentLineList.each{ String oneLine -> out.println oneLine }
+                    // METHOD B. Custom LineBreak
+                    else
+                        out.print ( fileContentLineList.join(opt.lineBreak) + ((opt.lastLineBreak)?:'') )
+                }
             }
             if (opt.chmod)
                 chmod(file, opt.chmod)
