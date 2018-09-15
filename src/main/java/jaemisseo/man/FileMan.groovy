@@ -10,6 +10,7 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
@@ -276,7 +277,7 @@ class FileMan {
         file.setWritable(false, false)
         file.setExecutable(false, false)
     }
-    
+
     /*************************
      * MKDIRS
      *************************/
@@ -380,6 +381,27 @@ class FileMan {
             logger.warn("Does not exist Source File. [ ${sourcePath} ]")
 //            throw new IOException("Does not exist Source File, [ ${sourcePath} ]")
             return false
+        }
+        return true
+    }
+
+    static boolean removeFileSizeZeroEntry(String targetRootPath, List<String> entryList, boolean modeExcludeFileSizeZero){
+        List<Integer> sizeZeroEntryIndexList = []
+        if (modeExcludeFileSizeZero){
+            //Search Size Zero File
+            entryList.eachWithIndex{ String entryPath, int index ->
+                File file = new File(targetRootPath, entryPath)
+                if (file.exists() && file.isFile() && !file.isDirectory() && file.length() == 0){
+                    sizeZeroEntryIndexList << index
+                }
+            }
+            //Remove by index
+            sizeZeroEntryIndexList.reverseEach{ Integer sizeZeroEntryIndex ->
+                String sizeZeroEntryPath = entryList[sizeZeroEntryIndex]
+                File file = new File(targetRootPath, sizeZeroEntryPath)
+                logger.debug " (Exclude File Size Zero) ${file.path}"
+                entryList.remove(sizeZeroEntryIndex)
+            }
         }
         return true
     }
@@ -794,6 +816,7 @@ class FileMan {
         checkSourceFiles(sourcePath, entryList)
         String sourceRootPath = new File(sourcePath).getParentFile().getPath()
         String destRootPath = getLastDirectoryPath(destPath)
+        removeFileSizeZeroEntry(sourceRootPath, entryList, opt.modeExcludeFileSizeZero)
         //- Check Dest
         checkDir(destPath, opt.modeAutoMkdir)
         checkFile(destPath, opt.modeAutoOverWrite)
@@ -1601,7 +1624,7 @@ class FileMan {
 
     static List<File> findAll(List<String> entryList, String filePath, String searchFileName, Closure eachFoundFileClosure){
         File node = new File(filePath)
-        if (node.getName().equals(searchFileName)){
+        if (isMatchedPath(filePath, getFullPath(searchFileName))){
             if (eachFoundFileClosure){
                 if (eachFoundFileClosure(node)){
                     entryList.add(node)
@@ -1630,6 +1653,7 @@ class FileMan {
                                     .replace('[', '\\[').replace(']', '\\]')
                                     .replace('.', '\\.').replace('$', '\\$')
                                     .replace('*',"[^\\/\\\\]*")
+                                    .replace('[^\\/\\\\]*[^\\/\\\\]*/','(\\S*[\\/\\\\]|)')
                                     .replace('[^\\/\\\\]*[^\\/\\\\]*',"\\S*")
         return onePath.replace('\\', '/').matches(regexpStr)
     }
@@ -1892,6 +1916,41 @@ class FileMan {
 
     def report(){
         return ""
+    }
+
+    /*************************
+     * Changed
+     *************************/
+    static boolean isChanged(String filePathA, String filePathB){
+        //Analisys Directories
+        File fileA = new File(filePathA)
+        File fileB = new File(filePathB)
+        if (fileA.isDirectory() || fileB.isDirectory()){
+            return !(fileA.isDirectory() && fileB.isDirectory())
+        }
+
+        //Analisys Files
+        long start = System.nanoTime();
+        logger.trace("  - Comparing: ${filePathA}  and  ${filePathB}");
+        FileChannel chA = new RandomAccessFile(filePathA, "r").getChannel();
+        FileChannel chB = new RandomAccessFile(filePathB, "r").getChannel();
+        if (chA.size() != chB.size()) {
+            logger.trace("    !! Files have different length.")
+            return true
+        }
+        long size = chA.size();
+        ByteBuffer mA = chA.map(FileChannel.MapMode.READ_ONLY, 0L, size);
+        ByteBuffer mB = chB.map(FileChannel.MapMode.READ_ONLY, 0L, size);
+        for (int pos = 0; pos < size; pos++) {
+            if (mA.get(pos) != mB.get(pos)) {
+                logger.trace("   !! Files differ at position " + pos)
+                return true
+            }
+        }
+        logger.trace("   !! Files are identical.");
+        long end = System.nanoTime();
+        logger.trace(" - Execution time: " + (end - start) / 1000000 + "ms");
+        return false
     }
 
     /*************************

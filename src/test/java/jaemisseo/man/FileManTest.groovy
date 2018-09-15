@@ -102,28 +102,81 @@ class FileManTest {
             'd:/test/not_real_path2/just-test/build/installer_myproject/log',
             'd:/test/not_real_path2/just-test/build/installer_myproject/lib',
         ]
-        assert isMachingData(filePathList, 'd:/t*t/not_real_path/just-test', [
+
+        assert getMachingDataList(filePathList, 'd:/t*t/not_real_path/just-test') == [
             'd:/test/not_real_path/just-test'
-        ])
+        ]
 
-        assert isMachingData(filePathList, 'd:/*/not_real_path/just-test', [
+        assert getMachingDataList(filePathList, 'd:/*/not_real_path/just-test') == [
                 'd:/test/not_real_path/just-test'
-        ])
+        ]
 
-        assert isMachingData(filePathList, 'd:/*/n*a*h/just-test/*.yml', [
+        assert getMachingDataList(filePathList, 'd:/*/n*a*h/just-test/*.yml') == [
                 'd:/test/not_real_path/just-test/hello.yml',
                 'd:/test/not_real_path/just-test/bye.yml',
                 'd:/test/not_real_path/just-test/installer-maker.yml',
                 'd:/test/not_real_path/just-test/installer.yml'
-        ])
+        ]
 
-        assert isMachingData(filePathList, 'd:/**/just-test', [
+        assert getMachingDataList(filePathList, 'd:/**/just-test') == [
                 'd:/test/not_real_path/just-test'
-        ])
+        ]
 
-        assert isMachingData(filePathList, 'd:/**', filePathList.findAll{ it.startsWith('d:') })
+        assert getMachingDataList(filePathList, 'd:/test/**/*') == [
+                'd:/test/not_real_path/just-test',
+                'd:/test/not_real_path/just-test/dd',
+                'd:/test/not_real_path/just-test/hello.yml',
+                'd:/test/not_real_path/just-test/bye.yml',
+                'd:/test/not_real_path/just-test/installer-maker.yml',
+                'd:/test/not_real_path/just-test/installer.yml',
+                'd:/test/not_real_path/just-test/build.sh',
+                'd:/test/not_real_path/just-test/build.bat',
+                'd:/test/not_real_path2/just-test/.git',
+                'd:/test/not_real_path2/just-test/.git/git.config',
+                'd:/test/not_real_path2/just-test/.gitignore',
+                'd:/test/not_real_path2/just-test/build',
+                'd:/test/not_real_path2/just-test/build/installer_myproject',
+                'd:/test/not_real_path2/just-test/build/installer_myproject/bin',
+                'd:/test/not_real_path2/just-test/build/installer_myproject/bin/install',
+                'd:/test/not_real_path2/just-test/build/installer_myproject/bin/install.bat',
+                'd:/test/not_real_path2/just-test/build/installer_myproject/bin/macgyver',
+                'd:/test/not_real_path2/just-test/build/installer_myproject/bin/macgyver.bat',
+                'd:/test/not_real_path2/just-test/build/installer_myproject/log',
+                'd:/test/not_real_path2/just-test/build/installer_myproject/lib',
+        ]
 
-        assert isMachingData(filePathList, 'c:/**', filePathList.findAll{ it.startsWith('c:') })
+        assert getMachingDataList(filePathList, 'd:/test/not_real_path2/just-test/**/*') == [
+                'd:/test/not_real_path2/just-test/.git',
+                'd:/test/not_real_path2/just-test/.git/git.config',
+                'd:/test/not_real_path2/just-test/.gitignore',
+                'd:/test/not_real_path2/just-test/build',
+                'd:/test/not_real_path2/just-test/build/installer_myproject',
+                'd:/test/not_real_path2/just-test/build/installer_myproject/bin',
+                'd:/test/not_real_path2/just-test/build/installer_myproject/bin/install',
+                'd:/test/not_real_path2/just-test/build/installer_myproject/bin/install.bat',
+                'd:/test/not_real_path2/just-test/build/installer_myproject/bin/macgyver',
+                'd:/test/not_real_path2/just-test/build/installer_myproject/bin/macgyver.bat',
+                'd:/test/not_real_path2/just-test/build/installer_myproject/log',
+                'd:/test/not_real_path2/just-test/build/installer_myproject/lib',
+        ]
+
+        assert getMachingDataList(filePathList, 'd:/test/not_real_path2/just-test/**/*g*') == [
+                'd:/test/not_real_path2/just-test/.git',
+                'd:/test/not_real_path2/just-test/.git/git.config',
+                'd:/test/not_real_path2/just-test/.gitignore',
+                'd:/test/not_real_path2/just-test/build/installer_myproject/bin/macgyver',
+                'd:/test/not_real_path2/just-test/build/installer_myproject/bin/macgyver.bat',
+                'd:/test/not_real_path2/just-test/build/installer_myproject/log',
+        ]
+
+        assert getMachingDataList(filePathList, 'd:/**') ==  filePathList.findAll{ it.startsWith('d:') }
+
+        assert getMachingDataList(filePathList, 'c:/**') == filePathList.findAll{ it.startsWith('c:') }
+    }
+
+    private List<String> getMachingDataList(List<String> dataList, String range){
+        List<String> filteredDataList = dataList.findAll{ FileMan.isMatchedPath(it, range) }
+        return filteredDataList
     }
 
     private boolean isMachingData(List<String> dataList, String range, List<String> assertDataList){
