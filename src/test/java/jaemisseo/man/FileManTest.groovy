@@ -328,4 +328,28 @@ class FileManTest {
         FileMan.write("c:/ddddd/testtesttest.test", "hihi Hello.", new FileSetup(modeAppendWrite: true))
     }
 
+
+    @Test
+    void findResource(){
+        /** src/main/resource **/
+        assert FileMan.findResource('hello.txt')
+        assert FileMan.findResource('./hello.txt')
+        assert !FileMan.findResource('/hello.txt')
+
+        /** test/main/resource **/
+        assert FileMan.findResource('hello-test.txt')
+        assert FileMan.findResource('./hello-test.txt')
+        assert !FileMan.findResource('/hello-test.txt')
+
+        assert FileMan.findResource('dir_test/hello-test-1.txt')
+        assert FileMan.findResource('dir_test/hello-test-2.txt')
+        assert FileMan.findResource('./dir_test/hello-test-1.txt')
+        assert FileMan.findResource('./dir_test/hello-test-2.txt')
+        assert !FileMan.findResource('hello-test-1.txt')
+        assert !FileMan.findResource('hello-test-2.txt')
+
+        //TODO: aster(*) does not works
+        def ff = FileMan.findResource('hello-*.txt')
+    }
+
 }

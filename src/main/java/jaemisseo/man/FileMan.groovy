@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory
 
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
+import java.security.CodeSource
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
@@ -1462,7 +1463,8 @@ class FileMan {
     static File find(String rootPath, List<String> searchFileNameList){
         File foundFile
         for (String fileName : searchFileNameList){
-            File file = new File(rootPath?:'./', fileName)
+            String filePath = getFullPath(rootPath, fileName)
+            File file = new File(filePath)
             if (file.exists()){
                 foundFile = file
                 break
@@ -1470,6 +1472,22 @@ class FileMan {
         }
         return foundFile
     }
+
+
+
+    /*************************
+     * Find File - from this Application(.jar)
+     *************************/
+    static File findFromApp(String fileName){
+        return findFromApp([fileName])
+    }
+
+    static File findFromApp(List<String> fileNameList){
+        String rootPath = new FileMan().getThisAppFile()?.getParentFile()?.getPath()
+        return find(rootPath, fileNameList)
+    }
+
+
 
     /*************************
      * Find Resource
@@ -2141,31 +2159,39 @@ class FileMan {
         return getFullPath(nowPath, file?.path)
     }
 
-    static String getFullPath(String nowPath, String relativePath){
+    static String getFullPath(String nowPath_, String relativePath){
+        nowPath_ = nowPath_ ?: FileMan.nowPath
         if (!relativePath)
             return null
         relativePath = toSlash(relativePath)
         if (startsWithRootPath(relativePath))
             return relativePath
-        if (!nowPath || !relativePath)
+        if (!nowPath_ || !relativePath)
             return ''
         relativePath.split(/[\/\\]+/).each{ String next ->
             if (next.equals('..')){
-                if (!isRootPath(nowPath))
-                    nowPath = (new File(nowPath).isDirectory()) ? new File(nowPath).getParent() : new File(nowPath).getParentFile().getParent()
+                if (!isRootPath(nowPath_))
+                    nowPath_ = (new File(nowPath_).isDirectory()) ? new File(nowPath_).getParent() : new File(nowPath_).getParentFile().getParent()
             }else if (next.equals('.')){
-                if (!isRootPath(nowPath))
-                    nowPath = isFile(nowPath) ? new File(nowPath).getParent() : nowPath
+                if (!isRootPath(nowPath_))
+                    nowPath_ = isFile(nowPath_) ? new File(nowPath_).getParent() : nowPath_
             }else if (next.equals('~')){
-                nowPath = System.getProperty("user.home")
+                nowPath_ = System.getProperty("user.home")
             }else{
-                nowPath = "${nowPath}/${next}"
+                nowPath_ = "${nowPath_}/${next}"
             }
         }
-        return toSlash(new File(nowPath).path)
+        return toSlash(new File(nowPath_).path)
     }
 
 
+    File getThisAppFile(){
+        File thisAppFile
+        CodeSource src = this.getClass().getProtectionDomain().getCodeSource()
+        if (src)
+            thisAppFile = new File( src.getLocation().toURI().getPath() )
+        return thisAppFile
+    }
 
     FileSetup getMergedOption(FileSetup opt){
         return globalOption.clone().merge(opt)
