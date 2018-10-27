@@ -575,6 +575,7 @@ class FileMan {
             checkFile(destPath, opt.modeAutoOverWrite)
         //Write File to Dest
         File file = new File(destPath)
+        boolean alreadyExist = file.exists()
         try{
             if (opt.modeAppendWrite){
                 file.withWriterAppend(opt.encoding){ out ->
@@ -597,7 +598,8 @@ class FileMan {
             }
             if (opt.chmod)
                 chmod(file, opt.chmod)
-            logger.debug(" - Complete - Create ${file.path} \n")
+            if (!alreadyExist)
+                logger.debug(" - Complete - Create ${file.path} \n")
         }catch(Exception e){
             logger.error(" - Failed - To Create ${file.path} \n")
             throw new Exception("< Failed to WRITE File >", new Throwable("You Need To Check Permission Check And... Some... "))
