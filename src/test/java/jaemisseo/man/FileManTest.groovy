@@ -325,7 +325,9 @@ class FileManTest {
     @Test
     @Ignore
     void appendWriteTest(){
-        FileMan.write("c:/ddddd/testtesttest.test", "hihi Hello.", new FileSetup(modeAppendWrite: true))
+        FileMan.write("c:/ddddd/testtesttest.txt", "hihi Hello.", new FileSetup(modeAutoOverWrite: true))
+        FileMan.write("c:/ddddd/testtesttestAppendOption.txt", "hihi Hello.", new FileSetup(modeAppendWrite: true))
+        FileMan.append("c:/ddddd/testtesttestAppend.txt", "hihi Hello.")
     }
 
 

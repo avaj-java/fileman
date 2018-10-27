@@ -608,6 +608,41 @@ class FileMan {
     }
 
     /*************************
+     * APPEND (write)
+     *************************/
+    static boolean append(String newFilePath, String content){
+        return append(newFilePath, content, new FileSetup())
+    }
+
+    static boolean append(String newFilePath, String content, boolean modeAutoMkdir){
+        return append(newFilePath, content, new FileSetup(modeAutoMkdir:modeAutoMkdir))
+    }
+
+    static boolean append(String newFilePath, String content, FileSetup opt){
+        List<String> fileContentLineList = []
+        content.eachLine{ fileContentLineList << it }
+        return append(newFilePath, fileContentLineList, opt)
+    }
+
+    static boolean append(String newFilePath, List<String> fileContentLineList, FileSetup opt){
+        return append(new File(getFullPath(newFilePath)), fileContentLineList, opt)
+    }
+
+    static boolean append(String newFilePath, List<String> fileContentLineList, boolean modeAutoMkdir){
+        return append(new File(getFullPath(newFilePath)), fileContentLineList, modeAutoMkdir)
+    }
+
+    static boolean append(File newFile, List<String> fileContentLineList, boolean modeAutoMkdir){
+        return append(newFile, fileContentLineList, new FileSetup(modeAutoMkdir:modeAutoMkdir))
+    }
+
+    static boolean append(File newFile, List<String> fileContentLineList, FileSetup opt){
+        opt.modeAppendWrite = true
+        return write(newFile, fileContentLineList, opt)
+    }
+
+
+     /*************************
      * COPY
      * 파일 => 파일 (파일명변경)
      * *   => 폴더   (자동파일명)
