@@ -1526,6 +1526,29 @@ class FileMan {
     /*************************
      * Find All File
      *************************/
+    static List<File> findAll(String searchFilePath){
+        String rootPath = ''
+        String fullPath = getFullPath(searchFilePath)
+        int firstAsterisk = fullPath.indexOf('*')
+        if (firstAsterisk != -1){
+            int slashIndexBeforeFirstAsterisk = (firstAsterisk != -1) ? fullPath.lastIndexOf('/', firstAsterisk) : -1
+            if (slashIndexBeforeFirstAsterisk > 0){
+                //- from specific path
+                rootPath = fullPath.substring(0, slashIndexBeforeFirstAsterisk)
+            }else if (slashIndexBeforeFirstAsterisk == 0){
+                //- from root
+                rootPath = '/'
+            }else{
+                //- from now
+                rootPath = './'
+            }
+        }else{
+            File foundFile = find(searchFilePath)
+            return (foundFile) ? [foundFile] : []
+        }
+        return findAll(rootPath, searchFilePath, null)
+    }
+
     static List<File> findAll(String rootPath, String searchFileName){
         return findAll(rootPath, searchFileName, null)
     }

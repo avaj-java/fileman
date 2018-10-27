@@ -324,13 +324,44 @@ class FileManTest {
 
     @Test
     @Ignore
-    void testWrite(){
+    void appendWriteTest(){
         FileMan.write("c:/ddddd/testtesttest.test", "hihi Hello.", new FileSetup(modeAppendWrite: true))
     }
 
 
     @Test
-    void findResource(){
+    @Ignore
+    void findAllTest(){
+        List a = FileMan.findAll('*.*')
+        List b = FileMan.findAll('src/**/F*.*')
+        List c = FileMan.findAll('src/**/*.*')
+        List d = FileMan.findAll('**/*.*')
+//        List z = FileMan.findAll('/**/*.*')   // Searching from root is  So many result
+
+        assert 0 < a.size()
+        assert b.size() < c.size()
+        assert c.size() < d.size()
+
+        assert FileMan.findAll('src/main/resources/hello-main-test.txt')
+        assert !FileMan.findAll('main/resources/hello-main-test.txt')
+        assert !FileMan.findAll('resources/hello-main-test.txt')
+        assert !FileMan.findAll('hello-main-test.txt')
+
+        String nowPath = FileMan.getFullPath('./')
+        assert FileMan.findAll("${nowPath}/src/main/resources/hello-main-test.txt")
+        assert !FileMan.findAll("${nowPath}/main/resources/hello-main-test.txt")
+        assert !FileMan.findAll("${nowPath}/resources/hello-main-test.txt")
+        assert !FileMan.findAll("${nowPath}/hello-main-test.txt")
+
+        assert FileMan.findAll(nowPath, 'src/main/resources/hello-main-test.txt')
+        assert !FileMan.findAll(nowPath, 'main/resources/hello-main-test.txt')
+        assert !FileMan.findAll(nowPath, 'resources/hello-main-test.txt')
+        assert !FileMan.findAll(nowPath, 'hello-main-test.txt')
+    }
+
+
+    @Test
+    void findResourceTest(){
         /** src/main/resource **/
         assert FileMan.findResource('hello-main-test.txt')
         assert FileMan.findResource('./hello-main-test.txt')
