@@ -332,9 +332,9 @@ class FileManTest {
     @Test
     void findResource(){
         /** src/main/resource **/
-        assert FileMan.findResource('hello.txt')
-        assert FileMan.findResource('./hello.txt')
-        assert !FileMan.findResource('/hello.txt')
+        assert FileMan.findResource('hello-main-test.txt')
+        assert FileMan.findResource('./hello-main-test.txt')
+        assert !FileMan.findResource('/hello-main-test.txt')
 
         /** test/main/resource **/
         assert FileMan.findResource('hello-test.txt')
