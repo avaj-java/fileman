@@ -19,10 +19,7 @@ class FileManTest {
     void after(){
     }
 
-//    static void main(String[] args) {
-//        new FileManTest().findAllFile()
-//        new FileManTest().findAllFileWithProgressBar()
-//    }
+
 
     @Test
     @Ignore
@@ -384,5 +381,41 @@ class FileManTest {
         //TODO: aster(*) does not works
         def ff = FileMan.findResource('hello-*.txt')
     }
+
+
+
+    @Test
+    void readFromSpecificLineTest(){
+        File file = FileMan.findResource('hello-test.txt')
+        String separator = System.getProperty("line.separator")
+        List<String> lineList = new FileMan(file).read().content?.split(separator)?.toList()
+
+        assert new FileMan(file).read(1).content == lineList[0..2].join(separator)
+        assert new FileMan(file).read(2).content == lineList[1..2].join(separator)
+        assert new FileMan(file).read(3).content == lineList[2..2].join(separator)
+        assert new FileMan(file).read(4).content == ''
+
+        assert new FileMan(file).read(1, 1).content == lineList[0..0].join(separator)
+        assert new FileMan(file).read(1, 2).content == lineList[0..1].join(separator)
+        assert new FileMan(file).read(1, 3).content == lineList[0..2].join(separator)
+
+        assert new FileMan(file).read(2, 1).content == lineList[1..1].join(separator)
+        assert new FileMan(file).read(2, 2).content == lineList[1..2].join(separator)
+        assert new FileMan(file).read(2, 3).content == lineList[1..2].join(separator)
+
+        assert new FileMan(file).read(3, 1).content == lineList[2..2].join(separator)
+        assert new FileMan(file).read(3, 2).content == lineList[2..2].join(separator)
+        assert new FileMan(file).read(3, 3).content == lineList[2..2].join(separator)
+
+        assert new FileMan(file).read(4, 1).content == ''
+        assert new FileMan(file).read(4, 2).content == ''
+        assert new FileMan(file).read(4, 3).content == ''
+
+        assert new FileMan(file).read(5, 1).content == ''
+        assert new FileMan(file).read(5, 2).content == ''
+        assert new FileMan(file).read(5, 3).content == ''
+    }
+
+
 
 }

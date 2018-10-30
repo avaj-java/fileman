@@ -135,6 +135,45 @@ class FileMan {
         return lineList
     }
 
+    private List<String> loadFileContent(File f, Long fromLineNumber) {
+        return loadFileContent(f, fromLineNumber, null)
+    }
+
+    private List<String> loadFileContent(File f, Long fromLineNumber, Long lineCount) {
+        return loadFileContent(f, fromLineNumber, lineCount, globalOption)
+    }
+
+    private List<String> loadFileContent(File f, Long fromLineNumber, Long lineCount, FileSetup opt) {
+        opt = getMergedOption(opt)
+        String encoding = opt.encoding
+        List<String> lineList = new ArrayList<String>()
+        fromLineNumber = fromLineNumber ?: 0
+        String line
+        InputStreamReader isr
+        BufferedReader br
+        try {
+            isr = new InputStreamReader(new FileInputStream(f), encoding)
+            br = new BufferedReader(isr)
+            Long cnt = 0
+            while ((line = br.readLine()) != null) {
+                ++cnt
+                if (lineCount != null && fromLineNumber + (lineCount-1) < cnt)
+                    break
+                if ( cnt >= fromLineNumber)
+                    lineList.add(line)
+            }
+
+        } catch (Exception ex) {
+            throw ex
+        }finally{
+            if (isr)
+                isr.close()
+            if (br)
+                br.close()
+        }
+
+        return lineList
+    }
 
     /*************************
      * Create New File By LineList
@@ -1724,7 +1763,7 @@ class FileMan {
 
 
 
-    
+
     static boolean isMatchedPath(String onePath, String rangePath){
         String regexpStr = toSlash(rangePath)
                                     .replace('(', '\\(').replace(')', '\\)')
@@ -1927,6 +1966,23 @@ class FileMan {
         return read(sourceFile, fileSetup)
     }
 
+    FileMan read(Long fromLineNumber){
+        return read(sourceFile, fromLineNumber, null, globalOption)
+    }
+
+    FileMan read(Long fromLineNumber, FileSetup fileSetup){
+        return read(sourceFile, fromLineNumber, null, fileSetup)
+    }
+
+    FileMan read(Long fromLineNumber, Long lineCount){
+        return read(sourceFile, fromLineNumber, lineCount, globalOption)
+    }
+
+    FileMan read(Long fromLineNumber, Long lineCount, FileSetup fileSetup){
+        return read(sourceFile, fromLineNumber, lineCount, fileSetup)
+    }
+
+
     FileMan read(File file){
         return read(file, globalOption)
     }
@@ -1936,6 +1992,14 @@ class FileMan {
         read(lineList)
         return this
     }
+
+    FileMan read(File file, Long fromLineNumber, Long lineCount, FileSetup fileSetup){
+        List<String> lineList = loadFileContent(file, fromLineNumber, lineCount, fileSetup)
+        read(lineList)
+        return this
+    }
+
+
 
     FileMan readResource(String resourcePath){
         File resourceFile = getFileFromResource(resourcePath)
@@ -2190,7 +2254,7 @@ class FileMan {
             //Collect New Lines
             newLineList << newLine
         }
-        
+
         content = newLineList.join(System.getProperty("line.separator"))
         return this
     }
@@ -2226,8 +2290,9 @@ class FileMan {
         relativePath = toSlash(relativePath)
         if (startsWithRootPath(relativePath))
             return relativePath
-        if (!nowPath_ || !relativePath)
-            return ''
+        if (!startsWithRootPath(nowPath_))
+            return (nowPath_ + relativePath)
+
         relativePath.split(/[\/\\]+/).each{ String next ->
             if (next.equals('..')){
                 if (!isRootPath(nowPath_))
