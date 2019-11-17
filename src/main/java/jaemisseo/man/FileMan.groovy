@@ -100,15 +100,15 @@ class FileMan {
     /*************************
      * Read File
      *************************/
-    private boolean loadFileContent(String filePath){
+    private List<String> loadFileContent(String filePath){
         return loadFileContent(new File(filePath))
     }
 
-    private boolean loadFileContent(String filePath, FileSetup opt){
+    private List<String> loadFileContent(String filePath, FileSetup opt){
         return loadFileContent(new File(filePath), opt)
     }
 
-    private boolean loadFileContent(File f){
+    private List<String> loadFileContent(File f){
         return loadFileContent(f, globalOption)
     }
 
@@ -589,6 +589,10 @@ class FileMan {
         List<String> fileContentLineList = []
         content.eachLine{ fileContentLineList << it }
         return write(newFilePath, fileContentLineList, opt)
+    }
+
+    static boolean write(String newFilePath, List<String> fileContentLineList){
+        return write(new File(getFullPath(newFilePath)), fileContentLineList, new FileSetup())
     }
 
     static boolean write(String newFilePath, List<String> fileContentLineList, FileSetup opt){
@@ -1862,7 +1866,7 @@ class FileMan {
             file = new File(url.getFile())
         }
         if (file != null && !file.exists())
-            throw new RuntimeException("Error: File " + file + " not found!")
+            throw new FileNotFoundException("Error: File " + file + " not found!")
         return file
     }
 
