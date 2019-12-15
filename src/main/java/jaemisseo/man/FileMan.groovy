@@ -100,19 +100,23 @@ class FileMan {
     /*************************
      * Read File
      *************************/
-    private List<String> loadFileContent(String filePath){
-        return loadFileContent(new File(filePath))
+    List<String> getLineList(){
+        return getLineList(sourceFile)
     }
 
-    private List<String> loadFileContent(String filePath, FileSetup opt){
-        return loadFileContent(new File(filePath), opt)
+    List<String> getLineList(String filePath){
+        return getLineList(new File(filePath))
     }
 
-    private List<String> loadFileContent(File f){
-        return loadFileContent(f, globalOption)
+    List<String> getLineList(String filePath, FileSetup opt){
+        return getLineList(new File(filePath), opt)
     }
 
-    private List<String> loadFileContent(File f, FileSetup opt){
+    List<String> getLineList(File f){
+        return getLineList(f, globalOption)
+    }
+
+    List<String> getLineList(File f, FileSetup opt){
         opt = getMergedOption(opt)
         String encoding = opt.encoding
         List<String> lineList = new ArrayList<String>()
@@ -135,15 +139,15 @@ class FileMan {
         return lineList
     }
 
-    private List<String> loadFileContent(File f, Long fromLineNumber) {
-        return loadFileContent(f, fromLineNumber, null)
+    List<String> getLineList(File f, Long fromLineNumber) {
+        return getLineList(f, fromLineNumber, null)
     }
 
-    private List<String> loadFileContent(File f, Long fromLineNumber, Long lineCount) {
-        return loadFileContent(f, fromLineNumber, lineCount, globalOption)
+    List<String> getLineList(File f, Long fromLineNumber, Long lineCount) {
+        return getLineList(f, fromLineNumber, lineCount, globalOption)
     }
 
-    private List<String> loadFileContent(File f, Long fromLineNumber, Long lineCount, FileSetup opt) {
+    List<String> getLineList(File f, Long fromLineNumber, Long lineCount, FileSetup opt) {
         opt = getMergedOption(opt)
         String encoding = opt.encoding
         List<String> lineList = new ArrayList<String>()
@@ -1870,6 +1874,21 @@ class FileMan {
         return file
     }
 
+    static List<String> getListFromFile(String filePath){
+        return new FileMan(filePath).getLineList()
+    }
+
+    static List<String> getListFromFile(File file){
+        return new FileMan(file).getLineList()
+    }
+
+    static String getStringFromFile(String filePath){
+        return new FileMan(filePath).read().getContent()
+    }
+
+    static String getStringFromFile(File file){
+        return new FileMan(file).read().getContent()
+    }
 
 
 
@@ -1992,13 +2011,13 @@ class FileMan {
     }
 
     FileMan read(File file, FileSetup fileSetup){
-        List<String> lineList = loadFileContent(file, fileSetup)
+        List<String> lineList = getLineList(file, fileSetup)
         read(lineList)
         return this
     }
 
     FileMan read(File file, Long fromLineNumber, Long lineCount, FileSetup fileSetup){
-        List<String> lineList = loadFileContent(file, fromLineNumber, lineCount, fileSetup)
+        List<String> lineList = getLineList(file, fromLineNumber, lineCount, fileSetup)
         read(lineList)
         return this
     }

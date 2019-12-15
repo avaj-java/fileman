@@ -416,6 +416,32 @@ class FileManTest {
         assert new FileMan(file).read(5, 3).content == ''
     }
 
+    @Test
+    void getFileFromResource(){
+        String fileName = 'hello-test.txt';
+        File file = FileMan.getFileFromResource(fileName)
+        assert file.exists()
+        assert file.getName() == fileName
+    }
+
+    @Test
+    void getListFromFile(){
+        String fileName = 'hello-test.txt';
+        File file = FileMan.getFileFromResource(fileName)
+        List<String> list = FileMan.getListFromFile(file)
+        assert list.size() == 3
+        assert list[0] == 'hello test hello test hello test'
+        assert list[1] == 'hello test hello test'
+        assert list[2] == 'hello test'
+    }
+
+    @Test
+    void getStringFromFile(){
+        String fileName = 'hello-test.txt';
+        File file = FileMan.getFileFromResource(fileName)
+        String text = FileMan.getStringFromFile(file)
+        assert text == ('hello test hello test hello test\r\n' + 'hello test hello test\r\n' + 'hello test')
+    }
 
 
 }
