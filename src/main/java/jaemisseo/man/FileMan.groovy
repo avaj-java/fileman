@@ -330,12 +330,14 @@ class FileMan {
         File dir = new File(path)
         if (!dir.exists()){
             isOk = dir.mkdirs()
-            logger.debug "Created Directory: ${dir.path}"
+            logger.debug "  - Created Directory: ${dir.path}\n"
+        }else{
+            logger.debug "  - Directory already exists: ${dir.path}\n"
         }
         return isOk
     }
 
-    static boolean mkdirs(String path, Map buildStructureMap, boolean modeLog){
+    static boolean mkdirs(String path, Map<String, Map<String, Object>> buildStructureMap, boolean modeLog){
         //Log
         if (modeLog){
             logger.debug "- Structure: ${buildStructureMap}"
@@ -345,16 +347,18 @@ class FileMan {
         return mkdirs(path, buildStructureMap)
     }
 
-    static boolean mkdirs(String path, Map buildStructureMap){
-        buildStructureMap.each{
+    static boolean mkdirs(String path, Map<String, Map<String, Object>> buildStructureMap){
+        if (!buildStructureMap)
+            return mkdirs(path)
+
+        buildStructureMap.each{ String directoryName, Map subDirectoryMap ->
             //Make Directory
-            String directoryName = it.key
             String dirPath = getFullPath("${path}/${directoryName}")
             mkdirs(dirPath)
             //Make Sub Directory
-            Map subDirectoryMap = it.value
             mkdirs(dirPath, subDirectoryMap)
         }
+        return true
     }
 
     static boolean autoMkdirs(String destPath){
@@ -2470,7 +2474,11 @@ class FileMan {
     }
 
     static toBlackslash(String path){
-        return path?.replaceAll(/[\/\\]+/, '\\')
+        return path?.replaceAll(/[\/\\]+/, '\\\\')
+    }
+
+    static toBlackslashTwice(String path){
+        return path?.replaceAll(/[\/\\]+/, '\\\\\\\\')
     }
 
 }
