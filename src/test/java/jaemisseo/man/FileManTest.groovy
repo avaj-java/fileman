@@ -440,7 +440,8 @@ class FileManTest {
         String fileName = 'hello-test.txt';
         File file = FileMan.getFileFromResource(fileName)
         String text = FileMan.getStringFromFile(file)
-        assert text == ('hello test hello test hello test\r\n' + 'hello test hello test\r\n' + 'hello test')
+        String sperator = System.getProperty("line.separator");
+        assert text == "hello test hello test hello test${sperator}hello test hello test${sperator}hello test"
     }
 
 
