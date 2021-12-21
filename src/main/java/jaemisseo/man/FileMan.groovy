@@ -1858,6 +1858,10 @@ class FileMan {
             //Works in JAR
             try {
                 InputStream input = getClass().getResourceAsStream("/${resourcePath}") ?: Thread.currentThread().getContextClassLoader().getResourceAsStream("/${resourcePath}");
+
+                if (input == null)
+                    throw new Exception("Does not exists file from resource [${resourcePath}]");
+
                 file = File.createTempFile("tempfile", ".${fileNameExtension}")
                 OutputStream out = new FileOutputStream(file)
                 int len
@@ -2030,6 +2034,8 @@ class FileMan {
 
     FileMan readResource(String resourcePath){
         File resourceFile = getFileFromResource(resourcePath)
+        if (resourceFile == null)
+            throw new Exception("Does not exists file from resource. [${resourcePath}]")
         return read(resourceFile, globalOption)
     }
 
