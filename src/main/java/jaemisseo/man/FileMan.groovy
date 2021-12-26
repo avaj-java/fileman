@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.security.CodeSource
+import java.text.SimpleDateFormat
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
@@ -1846,39 +1847,16 @@ class FileMan {
     }
 
     static File getFileFromResource(String resourcePath){
-        //Works in IDE
-//        URL url = getClass().getResource(absolutePath);
-        URL url = Thread.currentThread().getContextClassLoader().getResource(resourcePath)
-        int fileNameLastDotIndex = resourcePath.lastIndexOf('.')
-        String fileNameExtension = (fileNameLastDotIndex != -1) ? resourcePath.substring(fileNameLastDotIndex +1)?.toLowerCase() : ''
-        File file
-        if (!url){
-            file = null
-        }else if (url.toString().startsWith("jar:")){
-            //Works in JAR
-            try {
-                InputStream input = getClass().getResourceAsStream("/${resourcePath}") ?: Thread.currentThread().getContextClassLoader().getResourceAsStream("/${resourcePath}");
+        return new FileMan().readResource(resourcePath).getSourceFile()
+    }
 
-                if (input == null)
-                    throw new Exception("Does not exists file from resource [${resourcePath}]");
-
-                file = File.createTempFile("tempfile", ".${fileNameExtension}")
-                OutputStream out = new FileOutputStream(file)
-                int len
-                byte[] bytes = new byte[1024]
-                while ((len = input.read(bytes)) != -1) {
-                    out.write(bytes, 0, len)
-                }
-                file.deleteOnExit()
-            } catch (IOException ex) {
-                ex.printStackTrace()
-            }
-        }else{
-            //Works in your IDE, but not from a JAR
-            file = new File(url.getFile())
+    static File getFileFromResourceWithoutException(String resourcePath){
+        File file = null;
+        try{
+            file = getFileFromResource(resourcePath)
+        }catch(e){
+            //Ignore
         }
-        if (file != null && !file.exists())
-            throw new FileNotFoundException("Error: File " + file + " not found!")
         return file
     }
 
@@ -1931,7 +1909,7 @@ class FileMan {
         opt = getMergedOption(opt)
         if (opt.modeAutoBackup){
             String filePath = sourceFile.getPath()
-            String backupPath = (opt.backupPath) ?: "${filePath}.bak_${new Date().format('yyyyMMdd_HHmmss')}"
+            String backupPath = (opt.backupPath) ?: "${filePath}.bak_${new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date())}"
             return backup(backupPath)
         }else{
             return this
@@ -2033,9 +2011,54 @@ class FileMan {
 
 
     FileMan readResource(String resourcePath){
-        File resourceFile = getFileFromResource(resourcePath)
+        String name = "/${resourcePath}";
+//        File resourceFile = getFileFromResource(resourcePath)
+
+        //Works in IDE
+//        URL url = getClass().getResource(absolutePath);
+        URL url = Thread.currentThread().getContextClassLoader().getResource(resourcePath)
+        int fileNameLastDotIndex = resourcePath.lastIndexOf('.')
+        String fileNameExtension = (fileNameLastDotIndex != -1) ? resourcePath.substring(fileNameLastDotIndex +1)?.toLowerCase() : ''
+        File file
+        if (!url){
+            file = null
+        }else if (url.toString().startsWith("jar:")){
+            //Works in JAR
+            try {
+                InputStream input = getClass().getResourceAsStream(name) ;
+                input = input != null ? input : Thread.currentThread().getContextClassLoader().getResourceAsStream(name);
+                input = input != null ? input : getClass().getResourceAsStream(resourcePath);
+                if (getClass().getClassLoader()){
+                    input = input != null ? input : getClass().getClassLoader().getResourceAsStream(resourcePath);
+                }
+
+                if (input == null)
+                    throw new Exception("Does not exists file from resource [${resourcePath}]");
+
+                file = File.createTempFile("tempfile", ".${fileNameExtension}")
+                OutputStream out = new FileOutputStream(file)
+                int len
+                byte[] bytes = new byte[1024]
+                while ((len = input.read(bytes)) != -1) {
+                    out.write(bytes, 0, len)
+                }
+                file.deleteOnExit()
+            } catch (IOException ex) {
+                ex.printStackTrace()
+            }
+        }else{
+            //Works in your IDE, but not from a JAR
+            file = new File(url.getFile())
+        }
+        if (file != null && !file.exists())
+            throw new FileNotFoundException("Error: File " + file + " not found!")
+
+        File resourceFile = file
+
         if (resourceFile == null)
             throw new Exception("Does not exists file from resource. [${resourcePath}]")
+
+        sourceFile = file
         return read(resourceFile, globalOption)
     }
 
