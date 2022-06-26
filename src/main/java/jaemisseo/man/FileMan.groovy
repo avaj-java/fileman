@@ -44,7 +44,7 @@ class FileMan {
         nowPath = System.getProperty('user.dir')
     }
 
-    static final Logger logger = LoggerFactory.getLogger(this.getClass());
+    static final Logger logger = LoggerFactory.getLogger(this.getClass())
 
     boolean directoryAutoCreateUse = true
 
@@ -369,6 +369,7 @@ class FileMan {
         //Check Directory
         if (!new File(destDirPath).isDirectory() && !new File(destDirPath).exists())
             throw new Exception('There is No Directory. OR Maybe, It Failed To Create Directory.')
+        return true
     }
 
     /*************************
@@ -653,7 +654,7 @@ class FileMan {
             if (!alreadyExist)
                 logger.debug(" - Complete - Create ${file.path} \n")
         }catch(Exception e){
-            logger.error(" - Failed - To Create ${file.path} \n")
+            logger.error(" - Failed - To Create ${file.path} \n", e)
             throw new Exception("< Failed to WRITE File >", new Throwable("You Need To Check Permission Check And... Some... "))
         }
         return true
@@ -1616,12 +1617,13 @@ class FileMan {
     static List<File> findAll(String searchFilePath){
         String rootPath = ''
         String fullPath = getFullPath(searchFilePath)
+
         int firstAsterisk = fullPath.indexOf('*')
         if (firstAsterisk != -1){
             int slashIndexBeforeFirstAsterisk = (firstAsterisk != -1) ? fullPath.lastIndexOf('/', firstAsterisk) : -1
             if (slashIndexBeforeFirstAsterisk > 0){
                 //- from specific path
-                rootPath = fullPath.substring(0, slashIndexBeforeFirstAsterisk)
+                rootPath = fullPath.substring(0, slashIndexBeforeFirstAsterisk +1)
             }else if (slashIndexBeforeFirstAsterisk == 0){
                 //- from root
                 rootPath = '/'
@@ -1651,10 +1653,20 @@ class FileMan {
     static List<File> findAll(String rootPath, String searchFileName, def condition, Closure eachFoundFileClosure){
         List<File> newEntryList = []
         List<File> filePathList = getSubFilePathList(rootPath)
+        String matchPattern = getMatcherPattern(rootPath, searchFileName)
 
+        int numberOfAsterisk = searchFileName.count("*")
+
+        //- Target: One Level
+        if (numberOfAsterisk <= 1){
+            newEntryList = getSubFilePathList(searchFileName)
+            return newEntryList.collect{ new File(it) }
+        }
+
+        //- Target: Multiple Level
         // Find File
         filePathList.eachWithIndex{ String onePath, int i ->
-            newEntryList = findAll(newEntryList, onePath, searchFileName) { File foundFile ->
+            newEntryList = findAll(newEntryList, onePath, matchPattern) { File foundFile ->
                 String foundFilePath = foundFile.getPath()
                 Map result = [:]
                 result[new File(foundFilePath).getName()] = true
@@ -1701,11 +1713,10 @@ class FileMan {
 
     static List<File> findAllWithProgressBar(String rootPath, String searchFileName, def condition, Closure eachFoundFileClosure){
         List<File> newEntryList = []
-        List<File> filePathList
+        rootPath = (rootPath) ? rootPath : ''
+        List<File> filePathList = getSubFilePathList(rootPath+'/*')
+        String matchPattern = getMatcherPattern(rootPath, searchFileName)
 
-        if (!rootPath)
-            rootPath = ''
-        filePathList = getSubFilePathList(rootPath+'/*')
         logger.debug('=============== Checking before find files')
         logger.trace('----- Root Files')
         logger.debug(filePathList.toListString())
@@ -1718,11 +1729,15 @@ class FileMan {
 
         // Find File
         Util.eachWithTimeProgressBar(filePathList, barSize){ data ->
+
             String onePath = data.item
-            newEntryList = findAll(newEntryList, onePath, searchFileName){ File foundFile ->
+
+            newEntryList = findAll(newEntryList, onePath, matchPattern){ File foundFile ->
                 String foundFilePath = foundFile.getPath()
                 Map result = [:]
-                result[new File(foundFilePath).getName()] = true
+
+                String fileName = new File(foundFilePath).getName()
+                result[fileName] = true
                 def foundObject = Util.find(result, condition){ dataObject, conditionObject ->
                     //파일 존재 검사후, 조건값과 비교
                     Map matchedObject = conditionObject.findAll{ path, existCondition ->
@@ -1748,13 +1763,14 @@ class FileMan {
     /*************************
      * Find File (Core - Recursively)
      *************************/
-    static List<File> findAll(List<String> entryList, String filePath, String searchFileName){
-        return findAll(entryList, filePath, searchFileName, null)
+    static List<File> findAll(List<File> entryList, String filePath, String searchPattern){
+        return findAll(entryList, filePath, searchPattern, null)
     }
 
-    static List<File> findAll(List<String> entryList, String filePath, String searchFileName, Closure eachFoundFileClosure){
+    static List<File> findAll(List<File> entryList, String filePath, String searchPattern, Closure eachFoundFileClosure){
         File node = new File(filePath)
-        if (isMatchedPath(filePath, getFullPath(searchFileName))){
+        boolean pathIsMatched = isMatchedPath(filePath, searchPattern)
+        if (pathIsMatched){
             if (eachFoundFileClosure){
                 if (eachFoundFileClosure(node)){
                     entryList.add(node)
@@ -1767,7 +1783,7 @@ class FileMan {
         if(node.isDirectory()){
             String[] subNodes = node.list()
             for (String filename : subNodes){
-                findAll(entryList, new File(node, filename).getPath(), searchFileName, eachFoundFileClosure)
+                findAll(entryList, new File(node, filename).getPath(), searchPattern, eachFoundFileClosure)
             }
         }
         return entryList
@@ -1776,6 +1792,12 @@ class FileMan {
 
 
 
+    static String getMatcherPattern(String filePath, String searchFileName){
+        String matchPattern = null
+        String lastDirectoryPath = getLastDirectoryPath(filePath)
+        matchPattern = getFullPath(lastDirectoryPath, searchFileName)
+        return matchPattern
+    }
 
     static boolean isMatchedPath(String onePath, String rangePath){
         String regexpStr = toSlash(rangePath)
@@ -1813,6 +1835,7 @@ class FileMan {
             }else{
                 filePath = filePath.contains('*') ? filePath : "${filePath}"
             }
+
         }else{
             if (isWindows && filePath == '/*'){
                 rootList.each{ File root ->
@@ -1825,7 +1848,9 @@ class FileMan {
                 // check files (new)
                 if (!fullPath){
                 }else if (fullPath.contains('*')){
-                    new File(fullPath).getParentFile().listFiles().each{ File f ->
+                    File parentFile = new File(fullPath).getParentFile()
+                    File[] parentFileList = parentFile.listFiles()
+                    parentFileList.each{ File f ->
                         if (isMatchedPath(f.path, fullPath))
                             filePathList << f.path
                     }
@@ -1851,7 +1876,7 @@ class FileMan {
     }
 
     static File getFileFromResourceWithoutException(String resourcePath){
-        File file = null;
+        File file = null
         try{
             file = getFileFromResource(resourcePath)
         }catch(e){
@@ -2011,7 +2036,7 @@ class FileMan {
 
 
     FileMan readResource(String resourcePath){
-        String name = "/${resourcePath}";
+        String name = "/${resourcePath}"
 //        File resourceFile = getFileFromResource(resourcePath)
 
         //Works in IDE
@@ -2025,15 +2050,15 @@ class FileMan {
         }else if (url.toString().startsWith("jar:")){
             //Works in JAR
             try {
-                InputStream input = getClass().getResourceAsStream(name) ;
-                input = input != null ? input : Thread.currentThread().getContextClassLoader().getResourceAsStream(name);
-                input = input != null ? input : getClass().getResourceAsStream(resourcePath);
+                InputStream input = getClass().getResourceAsStream(name)
+                input = input != null ? input : Thread.currentThread().getContextClassLoader().getResourceAsStream(name)
+                input = input != null ? input : getClass().getResourceAsStream(resourcePath)
                 if (getClass().getClassLoader()){
-                    input = input != null ? input : getClass().getClassLoader().getResourceAsStream(resourcePath);
+                    input = input != null ? input : getClass().getClassLoader().getResourceAsStream(resourcePath)
                 }
 
                 if (input == null)
-                    throw new Exception("Does not exists file from resource [${resourcePath}]");
+                    throw new Exception("Does not exists file from resource [${resourcePath}]")
 
                 file = File.createTempFile("tempfile", ".${fileNameExtension}")
                 OutputStream out = new FileOutputStream(file)
@@ -2316,7 +2341,7 @@ class FileMan {
     }
 
 
-    String getRightReplacement(String replacement){
+    static String getRightReplacement(String replacement){
         // This Condition's Logic prevent disapearance \
         if (replacement.indexOf('\\') != -1)
             replacement = replacement.replaceAll('\\\\','\\\\\\\\')
@@ -2407,7 +2432,7 @@ class FileMan {
             File excludeFile = new File(excludeItem)
             return targetFile.path.equals(excludeFile.path)
         }
-        return excludeCheckList;
+        return excludeCheckList
     }
 
     static boolean startsWithRootPath(String filePath){
@@ -2464,7 +2489,7 @@ class FileMan {
     /**
      * Seperator with comma or space
      */
-    List<String> toList(String itemsSeperatedWithCommaOrSpace){
+    static List<String> toList(String itemsSeperatedWithCommaOrSpace){
         List<String> itemList = (itemsSeperatedWithCommaOrSpace) ? itemsSeperatedWithCommaOrSpace.replaceAll('[,]', ' ').split(/\s{1,}/) : []
         return itemList
     }
@@ -2473,7 +2498,7 @@ class FileMan {
      * 특정 필드로 LIST 조각내서 Map에 담기
      * List -> Map<String, List> by Key
      */
-    Map toMap(List dataList, String keyName){
+    static Map toMap(List dataList, String keyName){
         Map<String, List> fileMapForSeperator = [:]
         // 4-1. fileMapForSeperator에 특정 필드로 분류해서 List로서 저장
         dataList.each{
@@ -2489,7 +2514,7 @@ class FileMan {
      * 특정 필드로 LIST 조각내서 Map에 담기
      * List -> Map<String, List> by Key
      */
-    Map toMap(List dataList, String keyName, List<String> validKeyList){
+    static Map toMap(List dataList, String keyName, List<String> validKeyList){
         Map<String, List> fileMapForSeperator = [:]
         // 4-1. fileMapForSeperator에 특정 필드로 분류해서 List로서 저장
         validKeyList.each{ String validKey ->
