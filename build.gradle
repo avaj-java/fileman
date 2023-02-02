@@ -4,6 +4,7 @@ apply plugin: 'groovy'
 apply plugin: 'java'
 apply plugin: 'idea'
 
+[compileJava, compileGroovy, compileTestJava, compileTestGroovy]*.options*.encoding = 'UTF-8'
 sourceCompatibility = JavaVersion.VERSION_1_6
 
 /*************************

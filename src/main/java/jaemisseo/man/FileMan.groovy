@@ -1844,7 +1844,7 @@ class FileMan {
                 }
             }else{
                 String fullPath = getFullPath(filePath)
-                File file = new File(fullPath)
+//                File file = new File(fullPath)
                 // check files (new)
                 if (!fullPath){
                 }else if (fullPath.contains('*')){
