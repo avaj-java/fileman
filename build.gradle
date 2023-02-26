@@ -50,9 +50,12 @@ repositories {
     maven { url "http://maven.springframework.org/release" }
 }
 
+String coreBasePath = project.hasProperty("coreBasePath") ? project.getProperty("coreBasePath") : ""
+
 dependencies {
 
-    compile ( (rootProject?.findProject('common-util')) ? project(':common-util') : 'com.github.avaj-java:common-util:0.4.2' )
+//    compile ( (rootProject?.findProject('common-util')) ? project(':common-util') : 'com.github.avaj-java:common-util:0.4.3' )
+    compile ( (rootProject?.findProject("${coreBasePath}:common-util")) ? project(":${coreBasePath}:common-util") : 'com.github.avaj-java:common-util:0.4.3' )
 
     //TAR
     compile 'org.apache.commons:commons-compress:1.11'
